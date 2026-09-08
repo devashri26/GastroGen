@@ -66,7 +66,7 @@ def main():
 
     # 3. Launch Uvicorn
     try:
-        uvicorn.run("app:app", host=host, port=port, log_level="info")
+        uvicorn.run("app_fastapi:app", host=host, port=port, log_level="info")
     except KeyboardInterrupt:
         print("\n[+] GastroGen server gracefully stopped.")
     except Exception as e:
