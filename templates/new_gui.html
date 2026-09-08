@@ -1,0 +1,2156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GastroLens — Pretrained Model Inference Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #090d16;
+            --bg-surface: #0f172a;
+            --bg-card: rgba(18, 27, 47, 0.75);
+            --bg-card-hover: rgba(26, 39, 68, 0.85);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-focus: rgba(56, 189, 248, 0.5);
+            --accent-cyan: #38bdf8;
+            --accent-blue: #2563eb;
+            --accent-purple: #8b5cf6;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --glow-cyan: 0 0 25px rgba(56, 189, 248, 0.25);
+            --glow-purple: 0 0 25px rgba(139, 92, 246, 0.25);
+            --glass-blur: blur(14px);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(37, 99, 235, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(139, 92, 246, 0.10) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.04) 0%, transparent 60%);
+            background-attachment: fixed;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .brand-title {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        code, .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Top Navigation Bar */
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 2rem;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: var(--glass-blur);
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            text-decoration: none;
+        }
+
+        .brand-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--glow-cyan);
+            color: #ffffff;
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+
+        .brand-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .badge-studio {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(56, 189, 248, 0.2), rgba(139, 92, 246, 0.2));
+            color: var(--accent-cyan);
+            border: 1px solid rgba(56, 189, 248, 0.35);
+        }
+
+        .brand-subtitle {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .device-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-emerald);
+            box-shadow: 0 0 8px var(--accent-emerald);
+            animation: pulse-dot 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.6; }
+        }
+
+        .btn-classic {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.45rem 1rem;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-classic:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* Layout Container */
+        .app-container {
+            max-width: 1560px;
+            margin: 0 auto;
+            padding: 2rem;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 460px 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        @media (max-width: 1100px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Cards Base */
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+
+        .card-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .card-title-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        /* Left Column: Controls & Upload */
+        .controls-col {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Upload Area */
+        .dropzone {
+            border: 2px dashed rgba(56, 189, 248, 0.3);
+            border-radius: 14px;
+            padding: 1.75rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: rgba(15, 23, 42, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            border-color: var(--accent-cyan);
+            background: rgba(56, 189, 248, 0.06);
+            box-shadow: var(--glow-cyan);
+        }
+
+        .dropzone-icon {
+            font-size: 2.25rem;
+            color: var(--accent-cyan);
+            margin-bottom: 0.75rem;
+            transition: transform 0.2s ease;
+        }
+
+        .dropzone:hover .dropzone-icon {
+            transform: translateY(-3px) scale(1.08);
+        }
+
+        .dropzone-text {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .dropzone-subtext {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        /* Image Preview Box */
+        .preview-box {
+            display: none;
+            margin-top: 1rem;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-subtle);
+            padding: 0.85rem;
+            position: relative;
+        }
+
+        .preview-box.active {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .preview-thumb {
+            width: 72px;
+            height: 72px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid var(--border-subtle);
+            background: #000;
+        }
+
+        .preview-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .preview-name {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .preview-meta {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .btn-clear-img {
+            background: rgba(244, 63, 94, 0.15);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            color: var(--accent-rose);
+            border-radius: 6px;
+            padding: 0.3rem 0.6rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-clear-img:hover {
+            background: rgba(244, 63, 94, 0.3);
+        }
+
+        /* Preset Samples Tray */
+        .presets-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-secondary);
+            margin-top: 1.25rem;
+            margin-bottom: 0.65rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .presets-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+        }
+
+        .preset-chip {
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.6);
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            position: relative;
+            aspect-ratio: 1;
+        }
+
+        .preset-chip img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.3s;
+        }
+
+        .preset-chip:hover img {
+            transform: scale(1.12);
+        }
+
+        .preset-chip.active {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+        }
+
+        .preset-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 2px 4px;
+            font-size: 0.62rem;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            color: #ffffff;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Dropdown Selection (The "Dropbox") */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .select-wrapper {
+            position: relative;
+        }
+
+        .model-select {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            padding-right: 2.5rem;
+            border-radius: 10px;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            font-size: 0.95rem;
+            font-weight: 500;
+            appearance: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .model-select:hover {
+            border-color: rgba(56, 189, 248, 0.4);
+            background: rgba(22, 33, 58, 0.95);
+        }
+
+        .model-select:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: var(--glow-cyan);
+        }
+
+        .model-select optgroup {
+            background-color: #0f172a;
+            color: var(--accent-cyan);
+            font-weight: 700;
+            padding: 0.5rem;
+        }
+
+        .model-select option {
+            background-color: #0b1329;
+            color: #ffffff;
+            font-weight: 400;
+            padding: 0.5rem;
+        }
+
+        .select-arrow {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: var(--accent-cyan);
+            font-size: 0.9rem;
+        }
+
+        /* Model Spec Card */
+        .model-spec-card {
+            border-radius: 10px;
+            background: rgba(56, 189, 248, 0.05);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            padding: 1rem;
+            margin-top: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .spec-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(56, 189, 248, 0.2);
+            color: var(--accent-cyan);
+            margin-bottom: 0.45rem;
+            text-transform: uppercase;
+        }
+
+        .spec-name {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .spec-desc {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+            line-height: 1.4;
+        }
+
+        .spec-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.65rem;
+        }
+
+        .spec-pill {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+        }
+
+        /* Toggles & Options */
+        .options-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.85rem 1rem;
+            border-radius: 10px;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border-subtle);
+            margin-bottom: 1.25rem;
+        }
+
+        .toggle-label-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .toggle-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .toggle-subtitle {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        /* Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.15);
+            transition: .3s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent-cyan);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Action Buttons */
+        .btn-predict {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(56, 189, 248, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            transition: all 0.25s ease;
+        }
+
+        .btn-predict:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(56, 189, 248, 0.5);
+            filter: brightness(1.1);
+        }
+
+        .btn-predict:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-compare-all {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 10px;
+            background: rgba(139, 92, 246, 0.12);
+            border: 1px solid rgba(139, 92, 246, 0.35);
+            color: #c4b5fd;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+            margin-top: 0.75rem;
+        }
+
+        .btn-compare-all:hover:not(:disabled) {
+            background: rgba(139, 92, 246, 0.22);
+            color: #ffffff;
+            box-shadow: var(--glow-purple);
+        }
+
+        /* Right Column: Output & Visualization */
+        .output-col {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Output Placeholder State */
+        .empty-output-state {
+            padding: 5rem 2rem;
+            text-align: center;
+            border: 1px dashed var(--border-subtle);
+            border-radius: 16px;
+            background: rgba(15, 23, 42, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .empty-icon {
+            font-size: 3.5rem;
+            color: var(--text-muted);
+            margin-bottom: 1.25rem;
+            opacity: 0.7;
+        }
+
+        .empty-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.4rem;
+        }
+
+        .empty-text {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            max-width: 420px;
+            line-height: 1.5;
+        }
+
+        /* Active Output Container */
+        .active-output-wrapper {
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .active-output-wrapper.visible {
+            display: flex;
+        }
+
+        /* View Mode Switcher */
+        .view-mode-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 0.85rem;
+        }
+
+        .view-mode-tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(0, 0, 0, 0.35);
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .view-mode-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.45rem 0.95rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .view-mode-btn:hover {
+            color: #ffffff;
+        }
+
+        .view-mode-btn.active {
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+        }
+
+        .export-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-icon-action {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            border-radius: 8px;
+            padding: 0.45rem 0.85rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s;
+        }
+
+        .btn-icon-action:hover {
+            background: rgba(255, 255, 255, 0.14);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Visualizer Stage */
+        .stage-container {
+            border-radius: 14px;
+            background: #000000;
+            border: 1px solid var(--border-subtle);
+            overflow: hidden;
+            position: relative;
+            min-height: 380px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 1. Split-Curtain Comparison Slider */
+        .split-slider-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 520px;
+            aspect-ratio: 1;
+            user-select: none;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+
+        .split-slider-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .split-slider-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50%;
+            height: 100%;
+            overflow: hidden;
+            border-right: 2px solid var(--accent-cyan);
+            box-shadow: 2px 0 15px rgba(56, 189, 248, 0.6);
+        }
+
+        .split-slider-overlay img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 520px;
+            height: 520px;
+            object-fit: cover;
+        }
+
+        .split-handle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--accent-cyan);
+            color: #000;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            cursor: ew-resize;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .slider-tag {
+            position: absolute;
+            top: 12px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(6px);
+            z-index: 5;
+        }
+
+        .slider-tag.tag-left {
+            left: 12px;
+            color: var(--accent-cyan);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+        }
+
+        .slider-tag.tag-right {
+            right: 12px;
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .slider-range-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: ew-resize;
+            z-index: 20;
+            margin: 0;
+        }
+
+        /* 2. Side-by-Side Dual View */
+        .dual-view-grid {
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            width: 100%;
+            padding: 1.5rem;
+        }
+
+        .dual-view-grid.active {
+            display: grid;
+        }
+
+        .dual-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .dual-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .dual-panel-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-secondary);
+        }
+
+        .dual-img-wrap {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-subtle);
+            background: #000;
+            aspect-ratio: 1;
+            position: relative;
+        }
+
+        .dual-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* 3. Pathology Heatmap View */
+        .heatmap-view-grid {
+            display: none;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            width: 100%;
+            padding: 1.5rem;
+        }
+
+        .heatmap-view-grid.active {
+            display: grid;
+        }
+
+        @media (max-width: 900px) {
+            .heatmap-view-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Metrics HUD */
+        .metrics-hud {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        @media (max-width: 800px) {
+            .metrics-hud {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .metric-card {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 1rem;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .metric-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+            opacity: 0.5;
+        }
+
+        .metric-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.35rem;
+        }
+
+        .metric-name {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+        }
+
+        .metric-pill {
+            font-size: 0.68rem;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-emerald);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .metric-value {
+            font-size: 1.65rem;
+            font-weight: 700;
+            color: #ffffff;
+            font-family: 'JetBrains Mono', monospace;
+            margin: 0.2rem 0;
+        }
+
+        .metric-desc {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        /* Anomaly Diagnostic Banner */
+        .anomaly-alert-card {
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid transparent;
+        }
+
+        .anomaly-alert-card.normal {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.35);
+        }
+
+        .anomaly-alert-card.abnormal {
+            background: rgba(244, 63, 94, 0.12);
+            border-color: rgba(244, 63, 94, 0.35);
+        }
+
+        .anomaly-alert-left {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+        }
+
+        .anomaly-alert-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .anomaly-alert-card.normal .anomaly-alert-icon {
+            background: rgba(16, 185, 129, 0.25);
+            color: var(--accent-emerald);
+        }
+
+        .anomaly-alert-card.abnormal .anomaly-alert-icon {
+            background: rgba(244, 63, 94, 0.25);
+            color: var(--accent-rose);
+        }
+
+        .anomaly-alert-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .anomaly-alert-desc {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .anomaly-alert-badge {
+            font-size: 0.82rem;
+            font-weight: 700;
+            padding: 0.35rem 0.85rem;
+            border-radius: 6px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .anomaly-alert-card.normal .anomaly-alert-badge {
+            background: var(--accent-emerald);
+            color: #000;
+        }
+
+        .anomaly-alert-card.abnormal .anomaly-alert-badge {
+            background: var(--accent-rose);
+            color: #fff;
+        }
+
+        /* Batch Comparison Section */
+        .batch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .batch-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.2s;
+        }
+
+        .batch-card:hover {
+            border-color: var(--accent-cyan);
+            transform: translateY(-2px);
+        }
+
+        .batch-card-header {
+            padding: 0.65rem 0.85rem;
+            background: rgba(0, 0, 0, 0.4);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .batch-card-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .batch-img-wrap {
+            aspect-ratio: 1;
+            background: #000;
+            overflow: hidden;
+        }
+
+        .batch-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .batch-metrics {
+            padding: 0.65rem 0.85rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.25rem;
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .batch-metric-val {
+            font-weight: 600;
+            color: #ffffff;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Loading Spinner Overlay */
+        .loading-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(9, 13, 22, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 50;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1rem;
+            border-radius: 14px;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(56, 189, 248, 0.2);
+            border-top-color: var(--accent-cyan);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #ffffff;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .loading-subtext {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #1e293b;
+            color: #fff;
+            padding: 0.85rem 1.25rem;
+            border-radius: 10px;
+            border: 1px solid var(--border-subtle);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            z-index: 100;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Header -->
+    <nav class="navbar">
+        <a href="/new-gui" class="brand-container">
+            <div class="brand-logo">GL</div>
+            <div class="brand-info">
+                <div class="brand-title">
+                    GastroLens
+                    <span class="badge-studio">Model Studio</span>
+                </div>
+                <div class="brand-subtitle">Pretrained Generative AI & Pathology Inference GUI</div>
+            </div>
+        </a>
+
+        <div class="nav-actions">
+            <div class="device-pill" id="device-pill">
+                <div class="status-dot"></div>
+                <span id="device-label">Detecting Hardware...</span>
+            </div>
+            <a href="/" class="btn-classic" title="Return to classic comprehensive dashboard">
+                <span>← Classic Dashboard</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="app-container">
+
+        <!-- Left Controls Column: Image Upload & Model Selection (Dropbox) -->
+        <div class="controls-col">
+
+            <!-- Card 1: Image Upload -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-title-icon">1</div>
+                        Upload Endoscopy Image
+                    </div>
+                </div>
+
+                <!-- Drag & Drop Zone -->
+                <div class="dropzone" id="dropzone">
+                    <div class="dropzone-icon">📷</div>
+                    <div class="dropzone-text">Drag & drop endoscopy image here</div>
+                    <div class="dropzone-subtext">Supports PNG, JPG, JPEG, WEBP or click to browse</div>
+                    <input type="file" id="file-input" accept="image/*">
+                </div>
+
+                <!-- Image Preview Details (Hidden until selected) -->
+                <div class="preview-box" id="preview-box">
+                    <img id="preview-img" class="preview-thumb" src="" alt="Input preview">
+                    <div class="preview-details">
+                        <div class="preview-name" id="preview-name">image.png</div>
+                        <div class="preview-meta" id="preview-meta">Ready for inference</div>
+                    </div>
+                    <button class="btn-clear-img" id="btn-clear-img" title="Remove image">Clear</button>
+                </div>
+
+                <!-- Quick Presets Carousel -->
+                <div class="presets-title">
+                    <span>Or Select Kvasir-v2 Sample</span>
+                    <span style="font-size: 0.7rem; color: var(--accent-cyan);">Click to test</span>
+                </div>
+                <div class="presets-grid">
+                    <div class="preset-chip" data-file="polyps.png" data-name="Polyps (Lesion)">
+                        <img src="/static/class_samples/polyps.png" alt="Polyps">
+                        <div class="preset-label">Polyps</div>
+                    </div>
+                    <div class="preset-chip" data-file="esophagitis.png" data-name="Esophagitis">
+                        <img src="/static/class_samples/esophagitis.png" alt="Esophagitis">
+                        <div class="preset-label">Esophagitis</div>
+                    </div>
+                    <div class="preset-chip" data-file="ulcerative-colitis.png" data-name="Ulcerative Colitis">
+                        <img src="/static/class_samples/ulcerative-colitis.png" alt="Ulcerative Colitis">
+                        <div class="preset-label">U. Colitis</div>
+                    </div>
+                    <div class="preset-chip" data-file="normal-cecum.png" data-name="Normal Cecum">
+                        <img src="/static/class_samples/normal-cecum.png" alt="Normal Cecum">
+                        <div class="preset-label">Normal Cecum</div>
+                    </div>
+                    <div class="preset-chip" data-file="normal-pylorus.png" data-name="Normal Pylorus">
+                        <img src="/static/class_samples/normal-pylorus.png" alt="Normal Pylorus">
+                        <div class="preset-label">Normal Pylorus</div>
+                    </div>
+                    <div class="preset-chip" data-file="normal-z-line.png" data-name="Normal Z-Line">
+                        <img src="/static/class_samples/normal-z-line.png" alt="Normal Z-Line">
+                        <div class="preset-label">Normal Z-Line</div>
+                    </div>
+                    <div class="preset-chip" data-file="dyed-lifted-polyps.png" data-name="Dyed Lifted Polyps">
+                        <img src="/static/class_samples/dyed-lifted-polyps.png" alt="Dyed Lifted Polyps">
+                        <div class="preset-label">Dyed Polyps</div>
+                    </div>
+                    <div class="preset-chip" data-file="dyed-resection-margins.png" data-name="Dyed Resection Margins">
+                        <img src="/static/class_samples/dyed-resection-margins.png" alt="Dyed Margins">
+                        <div class="preset-label">Dyed Margins</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Manual Pretrained Model Selection (Dropbox) -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-title-icon">2</div>
+                        Manual Model Selection (Dropbox)
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="model-select">
+                        <span>Select Pretrained Model</span>
+                        <span style="font-size: 0.72rem; color: var(--accent-cyan); font-weight: 500;">Dropdown</span>
+                    </label>
+                    <div class="select-wrapper">
+                        <select class="model-select" id="model-select">
+                            <optgroup label="Trained Generative Models (Kvasir-v2)">
+                                <option value="autoencoder" selected>Convolutional Autoencoder (Standard Conv-AE)</option>
+                                <option value="vae">Variational Autoencoder (VAE)</option>
+                                <option value="transformer_vae">Transformer-VAE (ViT Multi-Head Attention)</option>
+                                <option value="normal_only_autoencoder">Normal-Only Autoencoder (Anomaly Screener)</option>
+                            </optgroup>
+                            <optgroup label="Pretrained Foundation Reference Models">
+                                <option value="sd_vae">Stable Diffusion VAE (SD-VAE ft-MSE Reference)</option>
+                                <option value="vit_mae">Vision Transformer MAE (ViT-MAE Base Reference)</option>
+                            </optgroup>
+                        </select>
+                        <div class="select-arrow">▼</div>
+                    </div>
+
+                    <!-- Dynamic Model Info Card -->
+                    <div class="model-spec-card" id="model-spec-card">
+                        <span class="spec-badge" id="spec-badge">Trained Model</span>
+                        <div class="spec-name" id="spec-name">Convolutional Autoencoder</div>
+                        <div class="spec-desc" id="spec-desc">3-stage convolutional encoder-decoder with 128-dimensional bottleneck for feature reconstruction.</div>
+                        <div class="spec-pills" id="spec-pills">
+                            <span class="spec-pill">Latent: 128-D</span>
+                            <span class="spec-pill">Resolution: 128x128</span>
+                            <span class="spec-pill">Architecture: Conv2D</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4x Super Resolution Toggle -->
+                <div class="options-row">
+                    <div class="toggle-label-group">
+                        <span class="toggle-title">4× Ultra-Resolution Enhancement</span>
+                        <span class="toggle-subtitle">LANCZOS high-definition post-processing</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-upscale">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <!-- Run Button -->
+                <button class="btn-predict" id="btn-predict" disabled>
+                    <span>⚡ Run Model Inference</span>
+                </button>
+
+                <!-- Compare All Action -->
+                <button class="btn-compare-all" id="btn-compare-all" disabled>
+                    <span>⚡ Compare All Models Side-by-Side</span>
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Output & Visualization Stage -->
+        <div class="output-col">
+
+            <!-- Card: Output Visualization Stage -->
+            <div class="card" style="min-height: 600px;">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-title-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border-color: rgba(16, 185, 129, 0.3);">3</div>
+                        Model Output & Clinical Analysis
+                    </div>
+                    <div class="export-actions" id="export-actions" style="display: none;">
+                        <button class="btn-icon-action" id="btn-download-output" title="Download reconstructed image">
+                            ⬇ Download Output
+                        </button>
+                        <button class="btn-icon-action" id="btn-copy-output" title="Copy output to clipboard">
+                            📋 Copy Image
+                        </button>
+                    </div>
+                </div>
+
+                <!-- View Mode Bar (Visible when output exists) -->
+                <div class="view-mode-bar" id="view-mode-bar" style="display: none;">
+                    <div class="view-mode-tabs">
+                        <button class="view-mode-btn active" data-view="slider">
+                            <span>↔ Before/After Slider</span>
+                        </button>
+                        <button class="view-mode-btn" data-view="dual">
+                            <span>⧉ Side-by-Side</span>
+                        </button>
+                        <button class="view-mode-btn" id="tab-heatmap-btn" data-view="heatmap" style="display: none;">
+                            <span>🔥 Anomaly Heatmap</span>
+                        </button>
+                        <button class="view-mode-btn" id="tab-attn-btn" data-view="attention" style="display: none;">
+                            <span>👁 ViT Attention</span>
+                        </button>
+                    </div>
+                    <div style="font-size: 0.78rem; color: var(--text-secondary);" id="active-model-tag">
+                        Model: <strong style="color: #ffffff;" id="tag-model-name">None</strong>
+                    </div>
+                </div>
+
+                <!-- Stage Content -->
+                <div class="stage-container" id="stage-container">
+                    
+                    <!-- Loading Overlay -->
+                    <div class="loading-overlay" id="loading-overlay">
+                        <div class="spinner"></div>
+                        <div class="loading-text" id="loading-text">Running neural inference...</div>
+                        <div class="loading-subtext">Processing latent representation & metrics</div>
+                    </div>
+
+                    <!-- 1. Empty / Initial State -->
+                    <div class="empty-output-state" id="empty-state">
+                        <div class="empty-icon">🔬</div>
+                        <div class="empty-title">Ready for Model Inference</div>
+                        <div class="empty-text">
+                            Upload an endoscopic image or choose one of the sample presets on the left, select your pretrained model from the dropbox, and hit <strong>Run Model Inference</strong>.
+                        </div>
+                    </div>
+
+                    <!-- 2. Active Visualizer Views (Hidden initially) -->
+                    <!-- View A: Split Slider Curtain -->
+                    <div class="split-slider-wrapper" id="view-slider" style="display: none;">
+                        <span class="slider-tag tag-left">Model Output</span>
+                        <span class="slider-tag tag-right">Original Input</span>
+                        
+                        <!-- Background image (Original) -->
+                        <img id="slider-img-orig" class="split-slider-img" src="" alt="Original Input">
+                        
+                        <!-- Overlay clipped image (Model Output) -->
+                        <div class="split-slider-overlay" id="slider-overlay">
+                            <img id="slider-img-recon" src="" alt="Model Output">
+                        </div>
+
+                        <!-- Draggable divider handle -->
+                        <div class="split-handle" id="slider-handle">↔</div>
+
+                        <!-- Invisible range input for smooth dragging -->
+                        <input type="range" min="0" max="100" value="50" class="slider-range-input" id="split-range-input">
+                    </div>
+
+                    <!-- View B: Side-by-Side Dual View -->
+                    <div class="dual-view-grid" id="view-dual">
+                        <div class="dual-panel">
+                            <div class="dual-panel-header">
+                                <span class="dual-panel-title">Original Input</span>
+                                <span style="font-size: 0.72rem; color: var(--text-muted);" id="dual-orig-dim">128×128</span>
+                            </div>
+                            <div class="dual-img-wrap">
+                                <img id="dual-orig-img" src="" alt="Original Image">
+                            </div>
+                        </div>
+                        <div class="dual-panel">
+                            <div class="dual-panel-header">
+                                <span class="dual-panel-title">Output</span>
+                                <span style="font-size: 0.72rem; color: var(--accent-cyan);" id="dual-recon-dim">Reconstructed</span>
+                            </div>
+                            <div class="dual-img-wrap">
+                                <img id="dual-recon-img" src="" alt="Reconstructed Image">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- View C: Pathology Heatmap View (Normal-Only Anomaly Model) -->
+                    <div class="heatmap-view-grid" id="view-heatmap">
+                        <div class="dual-panel">
+                            <div class="dual-panel-header">
+                                <span class="dual-panel-title">Original Tissue</span>
+                            </div>
+                            <div class="dual-img-wrap">
+                                <img id="heat-orig-img" src="" alt="Original">
+                            </div>
+                        </div>
+                        <div class="dual-panel">
+                            <div class="dual-panel-header">
+                                <span class="dual-panel-title" style="color: var(--accent-rose);">Pathology Error Heatmap</span>
+                            </div>
+                            <div class="dual-img-wrap">
+                                <img id="heat-map-img" src="" alt="Error Heatmap">
+                            </div>
+                        </div>
+                        <div class="dual-panel">
+                            <div class="dual-panel-header">
+                                <span class="dual-panel-title" style="color: var(--accent-amber);">Lesion Overlay</span>
+                            </div>
+                            <div class="dual-img-wrap">
+                                <img id="heat-overlay-img" src="" alt="Overlay">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- View D: Attention Map View (ViT-MAE) -->
+                    <div class="dual-view-grid" id="view-attention">
+                        <div class="dual-panel">
+                            <div class="dual-panel-header">
+                                <span class="dual-panel-title">Reconstructed Output</span>
+                            </div>
+                            <div class="dual-img-wrap">
+                                <img id="attn-recon-img" src="" alt="Reconstruction">
+                            </div>
+                        </div>
+                        <div class="dual-panel">
+                            <div class="dual-panel-header">
+                                <span class="dual-panel-title" style="color: var(--accent-purple);">ViT-MAE Attention Overlay</span>
+                            </div>
+                            <div class="dual-img-wrap">
+                                <img id="attn-map-img" src="" alt="Attention Overlay">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Anomaly Diagnostic Card (Appears if Anomaly Detector used) -->
+                <div id="anomaly-card-wrap" style="display: none; margin-top: 1.25rem;">
+                    <div class="anomaly-alert-card normal" id="anomaly-alert-card">
+                        <div class="anomaly-alert-left">
+                            <div class="anomaly-alert-icon" id="anomaly-alert-icon">✓</div>
+                            <div>
+                                <div class="anomaly-alert-title" id="anomaly-alert-title">Normal GI Tissue Detected</div>
+                                <div class="anomaly-alert-desc" id="anomaly-alert-desc">Reconstruction error is within safe normal baseline threshold.</div>
+                            </div>
+                        </div>
+                        <div class="anomaly-alert-badge" id="anomaly-alert-badge">Normal Tissue</div>
+                    </div>
+                </div>
+
+                <!-- Clinical Performance Metrics HUD -->
+                <div class="metrics-hud" id="metrics-hud" style="display: none; margin-top: 1.25rem;">
+                    
+                    <!-- PSNR Card -->
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span class="metric-name">PSNR</span>
+                            <span class="metric-pill" id="metric-psnr-pill">dB Quality</span>
+                        </div>
+                        <div class="metric-value" id="metric-psnr">--</div>
+                        <div class="metric-desc">Peak Signal-to-Noise Ratio</div>
+                    </div>
+
+                    <!-- SSIM Card -->
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span class="metric-name">SSIM</span>
+                            <span class="metric-pill" id="metric-ssim-pill">Fidelity</span>
+                        </div>
+                        <div class="metric-value" id="metric-ssim">--</div>
+                        <div class="metric-desc">Structural Similarity Index</div>
+                    </div>
+
+                    <!-- MSE Card -->
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span class="metric-name">MSE Error</span>
+                            <span class="metric-pill" id="metric-mse-pill" style="color: var(--accent-cyan); background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.3);">Mean Loss</span>
+                        </div>
+                        <div class="metric-value" id="metric-mse">--</div>
+                        <div class="metric-desc">Mean Squared Pixel Error</div>
+                    </div>
+
+                    <!-- Latency Card -->
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span class="metric-name">Inference Time</span>
+                            <span class="metric-pill" style="color: var(--accent-purple); background: rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.3);">Latency</span>
+                        </div>
+                        <div class="metric-value" id="metric-latency">--</div>
+                        <div class="metric-desc">Execution Latency (ms)</div>
+                    </div>
+
+                </div>
+
+                <!-- Batch Comparison Section (Hidden by default) -->
+                <div id="batch-results-container" style="display: none; margin-top: 1.5rem; border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">
+                    <div class="card-title" style="margin-bottom: 0.85rem;">
+                        <span>Comparative Multi-Model Evaluation</span>
+                    </div>
+                    <div class="batch-grid" id="batch-grid">
+                        <!-- Dynamically filled -->
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast" id="toast">
+        <span id="toast-icon">ℹ️</span>
+        <span id="toast-msg">Notification</span>
+    </div>
+
+    <script>
+        // Model Specifications Dictionary for dynamic specs card
+        const MODEL_SPECS = {
+            "autoencoder": {
+                name: "Convolutional Autoencoder",
+                badge: "Trained Model (Kvasir-v2)",
+                desc: "3-stage convolutional encoder-decoder with 128-dimensional bottleneck for baseline GI image reconstruction.",
+                pills: ["Latent: 128-D", "Resolution: 128×128", "Architecture: Conv2D", "Weights: Best Checkpoint"]
+            },
+            "vae": {
+                name: "Variational Autoencoder (VAE)",
+                badge: "Trained Generative Model",
+                desc: "Probabilistic latent space with Gaussian prior (μ, log σ²), enabling smooth latent space interpolation.",
+                pills: ["Latent: 128-D", "KL-Divergence Loss", "Stochastic Sampling", "Kvasir-v2"]
+            },
+            "transformer_vae": {
+                name: "Transformer-VAE (ViT-VAE)",
+                badge: "Attention Architecture",
+                desc: "Combines 16×16 patch embedding with 4-layer multi-head self-attention encoder and patch-reconstruction decoder.",
+                pills: ["Latent: 128-D", "Patch: 16×16", "Heads: 6", "Layers: 4"]
+            },
+            "normal_only_autoencoder": {
+                name: "Normal-Only Autoencoder (Anomaly Detector)",
+                badge: "Pathology Detection",
+                desc: "Trained exclusively on healthy GI tissue (normal cecum, pylorus, z-line). Lesions produce high reconstruction error for pathology localization.",
+                pills: ["Threshold: 0.00297", "Heatmap: JET Colormap", "Lesion Localization", "Diagnostic"]
+            },
+            "sd_vae": {
+                name: "Stable Diffusion VAE (SD-VAE-ft-MSE)",
+                badge: "Pretrained Reference",
+                desc: "Pretrained 84M parameter latent autoencoder from Stable Diffusion fine-tuned with MSE for photorealistic fidelity.",
+                pills: ["Pretrained: StabilityAI", "Latent: 4×16×16", "Reference Benchmark", "High-Res"]
+            },
+            "vit_mae": {
+                name: "Vision Transformer MAE (ViT-MAE Base)",
+                badge: "Pretrained Reference",
+                desc: "Masked Autoencoder trained on ImageNet-1k with self-supervised patch reconstruction and self-attention weight extraction.",
+                pills: ["Pretrained: Meta AI", "ViT-Base", "Self-Attention Maps", "Patch: 16×16"]
+            }
+        };
+
+        // State variables
+        let selectedFile = null;
+        let selectedBlob = null;
+        let lastInferenceData = null;
+
+        // Elements
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('file-input');
+        const previewBox = document.getElementById('preview-box');
+        const previewImg = document.getElementById('preview-img');
+        const previewName = document.getElementById('preview-name');
+        const previewMeta = document.getElementById('preview-meta');
+        const btnClearImg = document.getElementById('btn-clear-img');
+        const presetChips = document.querySelectorAll('.preset-chip');
+        const modelSelect = document.getElementById('model-select');
+        const toggleUpscale = document.getElementById('toggle-upscale');
+        const btnPredict = document.getElementById('btn-predict');
+        const btnCompareAll = document.getElementById('btn-compare-all');
+        const emptyState = document.getElementById('empty-state');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const loadingText = document.getElementById('loading-text');
+        const viewModeBar = document.getElementById('view-mode-bar');
+        const exportActions = document.getElementById('export-actions');
+        const metricsHud = document.getElementById('metrics-hud');
+        const anomalyCardWrap = document.getElementById('anomaly-card-wrap');
+        const toast = document.getElementById('toast');
+        const tagModelName = document.getElementById('tag-model-name');
+        const splitRangeInput = document.getElementById('split-range-input');
+        const sliderOverlay = document.getElementById('slider-overlay');
+        const sliderHandle = document.getElementById('slider-handle');
+
+        // Toast Helper
+        function showToast(msg, icon = 'ℹ️') {
+            document.getElementById('toast-icon').innerText = icon;
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3500);
+        }
+
+        // Fetch System Hardware Info
+        async function fetchSystemInfo() {
+            try {
+                const res = await fetch('/api/info');
+                if (res.ok) {
+                    const data = await res.json();
+                    const deviceLabel = document.getElementById('device-label');
+                    if (data.cuda_available) {
+                        deviceLabel.innerHTML = `Hardware: <strong style="color:#10b981;">CUDA GPU</strong> (${data.device})`;
+                    } else {
+                        deviceLabel.innerHTML = `Hardware: <strong style="color:#38bdf8;">CPU Host</strong>`;
+                    }
+                }
+            } catch (e) {
+                console.error("Info fetch failed:", e);
+            }
+        }
+        fetchSystemInfo();
+
+        // Update Model Specs Card on Dropdown Change
+        function updateModelSpecs(modelVal) {
+            const spec = MODEL_SPECS[modelVal] || MODEL_SPECS['autoencoder'];
+            document.getElementById('spec-badge').innerText = spec.badge;
+            document.getElementById('spec-name').innerText = spec.name;
+            document.getElementById('spec-desc').innerText = spec.desc;
+            const pillsContainer = document.getElementById('spec-pills');
+            pillsContainer.innerHTML = '';
+            spec.pills.forEach(p => {
+                const span = document.createElement('span');
+                span.className = 'spec-pill';
+                span.innerText = p;
+                pillsContainer.appendChild(span);
+            });
+        }
+
+        modelSelect.addEventListener('change', () => {
+            updateModelSpecs(modelSelect.value);
+            // If we already have inference data, highlight the active model name
+            if (lastInferenceData) {
+                tagModelName.innerText = modelSelect.options[modelSelect.selectedIndex].text;
+            }
+        });
+        updateModelSpecs(modelSelect.value);
+
+        // File Selection Handlers
+        dropzone.addEventListener('click', () => fileInput.click());
+
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('dragover');
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        // Paste support
+        window.addEventListener('paste', (e) => {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let item of items) {
+                if (item.kind === 'file' && item.type.startsWith('image/')) {
+                    const blob = item.getAsFile();
+                    handleFile(blob, "pasted_image.png");
+                    showToast("Image pasted from clipboard!", "📋");
+                    break;
+                }
+            }
+        });
+
+        function handleFile(file, customName) {
+            selectedFile = file;
+            selectedBlob = null;
+            presetChips.forEach(c => c.classList.remove('active'));
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+                previewName.innerText = customName || file.name;
+                const sizeKb = (file.size / 1024).toFixed(1);
+                previewMeta.innerText = `${sizeKb} KB • Image selected`;
+                previewBox.classList.add('active');
+                btnPredict.disabled = false;
+                btnCompareAll.disabled = false;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Preset Chips
+        presetChips.forEach(chip => {
+            chip.addEventListener('click', async () => {
+                presetChips.forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                const filename = chip.getAttribute('data-file');
+                const classTitle = chip.getAttribute('data-name');
+
+                try {
+                    const res = await fetch(`/static/class_samples/${filename}`);
+                    const blob = await res.blob();
+                    selectedBlob = blob;
+                    selectedFile = new File([blob], filename, { type: "image/png" });
+
+                    previewImg.src = URL.createObjectURL(blob);
+                    previewName.innerText = `${classTitle} (${filename})`;
+                    previewMeta.innerText = `Kvasir-v2 Dataset Preset`;
+                    previewBox.classList.add('active');
+                    btnPredict.disabled = false;
+                    btnCompareAll.disabled = false;
+                    showToast(`Loaded sample: ${classTitle}`, "🔬");
+                } catch (err) {
+                    showToast("Failed to load preset sample", "⚠️");
+                }
+            });
+        });
+
+        btnClearImg.addEventListener('click', () => {
+            selectedFile = null;
+            selectedBlob = null;
+            fileInput.value = '';
+            previewBox.classList.remove('active');
+            presetChips.forEach(c => c.classList.remove('active'));
+            btnPredict.disabled = true;
+            btnCompareAll.disabled = true;
+        });
+
+        // View Mode Switcher
+        const viewModeBtns = document.querySelectorAll('.view-mode-btn');
+        const viewSlider = document.getElementById('view-slider');
+        const viewDual = document.getElementById('view-dual');
+        const viewHeatmap = document.getElementById('view-heatmap');
+        const viewAttention = document.getElementById('view-attention');
+
+        function switchView(viewName) {
+            viewModeBtns.forEach(b => b.classList.remove('active'));
+            const activeBtn = document.querySelector(`.view-mode-btn[data-view="${viewName}"]`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            viewSlider.style.display = (viewName === 'slider') ? 'block' : 'none';
+            viewDual.style.display = (viewName === 'dual') ? 'grid' : 'none';
+            viewHeatmap.style.display = (viewName === 'heatmap') ? 'grid' : 'none';
+            viewAttention.style.display = (viewName === 'attention') ? 'grid' : 'none';
+        }
+
+        viewModeBtns.forEach(btn => {
+            btn.addEventListener('click', () => switchView(btn.getAttribute('data-view')));
+        });
+
+        // Split Curtain Slider Drag Control
+        splitRangeInput.addEventListener('input', (e) => {
+            const val = e.target.value;
+            sliderOverlay.style.width = `${val}%`;
+            sliderHandle.style.left = `${val}%`;
+        });
+
+        // Run Single Model Inference
+        btnPredict.addEventListener('click', async () => {
+            if (!selectedFile) return;
+
+            const modelName = modelSelect.value;
+            const upscale = toggleUpscale.checked;
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('model_name', modelName);
+            formData.append('upscale', upscale);
+
+            // Show loading
+            loadingText.innerText = `Running ${modelSelect.options[modelSelect.selectedIndex].text}...`;
+            loadingOverlay.classList.add('active');
+            btnPredict.disabled = true;
+
+            const t0 = performance.now();
+
+            try {
+                const response = await fetch('/api/reconstruct', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const t1 = performance.now();
+                const latency = Math.round(t1 - t0);
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.message || 'Inference error');
+                }
+
+                const data = await response.json();
+                lastInferenceData = data;
+                data.latency = latency;
+
+                // If normal_only_autoencoder was run, also fetch anomaly screening data automatically!
+                if (modelName === 'normal_only_autoencoder') {
+                    try {
+                        const screenFormData = new FormData();
+                        screenFormData.append('file', selectedFile);
+                        screenFormData.append('upscale', upscale);
+                        const screenRes = await fetch('/api/screen', {
+                            method: 'POST',
+                            body: screenFormData
+                        });
+                        if (screenRes.ok) {
+                            const screenData = await screenRes.json();
+                            data.anomaly_data = screenData;
+                        }
+                    } catch (e) {
+                        console.error("Anomaly screen fetch error:", e);
+                    }
+                }
+
+                renderInferenceResults(data, modelName);
+                showToast("Inference completed successfully!", "⚡");
+
+            } catch (err) {
+                showToast(`Error: ${err.message}`, "❌");
+                console.error(err);
+            } finally {
+                loadingOverlay.classList.remove('active');
+                btnPredict.disabled = false;
+            }
+        });
+
+        // Render Results into Views & Metrics HUD
+        function renderInferenceResults(data, modelName) {
+            emptyState.style.display = 'none';
+            viewModeBar.style.display = 'flex';
+            exportActions.style.display = 'flex';
+            metricsHud.style.display = 'grid';
+            tagModelName.innerText = modelSelect.options[modelSelect.selectedIndex].text;
+
+            // 1. Update Split Slider
+            document.getElementById('slider-img-orig').src = data.original;
+            document.getElementById('slider-img-recon').src = data.reconstructed;
+
+            // 2. Update Dual View
+            document.getElementById('dual-orig-img').src = data.original;
+            document.getElementById('dual-recon-img').src = data.reconstructed;
+
+            // 3. Metrics HUD
+            const psnrVal = (data.psnr !== undefined) ? data.psnr.toFixed(2) : '--';
+            const ssimVal = (data.ssim !== undefined) ? (data.ssim * 100).toFixed(1) + '%' : '--';
+            const mseVal = (data.mse !== undefined) ? data.mse.toFixed(5) : '--';
+            const latencyVal = data.latency ? `${data.latency} ms` : '--';
+
+            document.getElementById('metric-psnr').innerText = psnrVal;
+            document.getElementById('metric-ssim').innerText = ssimVal;
+            document.getElementById('metric-mse').innerText = mseVal;
+            document.getElementById('metric-latency').innerText = latencyVal;
+
+            // PSNR Pill
+            const psnrPill = document.getElementById('metric-psnr-pill');
+            if (data.psnr >= 30) {
+                psnrPill.innerText = 'High Quality';
+                psnrPill.style.color = 'var(--accent-emerald)';
+            } else if (data.psnr >= 25) {
+                psnrPill.innerText = 'Good Quality';
+                psnrPill.style.color = 'var(--accent-cyan)';
+            } else {
+                psnrPill.innerText = 'Baseline Quality';
+                psnrPill.style.color = 'var(--accent-amber)';
+            }
+
+            // 4. Anomaly Screening Check
+            const tabHeatmapBtn = document.getElementById('tab-heatmap-btn');
+            if (modelName === 'normal_only_autoencoder' && data.anomaly_data) {
+                tabHeatmapBtn.style.display = 'flex';
+                anomalyCardWrap.style.display = 'block';
+
+                document.getElementById('heat-orig-img').src = data.anomaly_data.original;
+                document.getElementById('heat-map-img').src = data.anomaly_data.heatmap;
+                document.getElementById('heat-overlay-img').src = data.anomaly_data.overlay;
+
+                const isAnomaly = data.anomaly_data.is_anomaly;
+                const alertCard = document.getElementById('anomaly-alert-card');
+                const alertIcon = document.getElementById('anomaly-alert-icon');
+                const alertTitle = document.getElementById('anomaly-alert-title');
+                const alertDesc = document.getElementById('anomaly-alert-desc');
+                const alertBadge = document.getElementById('anomaly-alert-badge');
+
+                if (isAnomaly) {
+                    alertCard.className = 'anomaly-alert-card abnormal';
+                    alertIcon.innerText = '⚠️';
+                    alertTitle.innerText = 'Abnormality / Pathology Detected';
+                    alertDesc.innerText = `Reconstruction MSE (${data.mse.toFixed(5)}) exceeds normal threshold (${data.anomaly_data.threshold.toFixed(5)}).`;
+                    alertBadge.innerText = 'Anomaly Flagged';
+                } else {
+                    alertCard.className = 'anomaly-alert-card normal';
+                    alertIcon.innerText = '✓';
+                    alertTitle.innerText = 'Normal Endoscopic Mucosa';
+                    alertDesc.innerText = `Reconstruction MSE (${data.mse.toFixed(5)}) is within healthy threshold (${data.anomaly_data.threshold.toFixed(5)}).`;
+                    alertBadge.innerText = 'Normal Tissue';
+                }
+            } else {
+                tabHeatmapBtn.style.display = 'none';
+                anomalyCardWrap.style.display = 'none';
+            }
+
+            // 5. ViT-MAE Attention Check
+            const tabAttnBtn = document.getElementById('tab-attn-btn');
+            if (modelName === 'vit_mae' && data.attn_overlay) {
+                tabAttnBtn.style.display = 'flex';
+                document.getElementById('attn-recon-img').src = data.reconstructed;
+                document.getElementById('attn-map-img').src = data.attn_overlay;
+            } else {
+                tabAttnBtn.style.display = 'none';
+            }
+
+            // Default to split slider view
+            switchView('slider');
+        }
+
+        // Compare All Models Action
+        btnCompareAll.addEventListener('click', async () => {
+            if (!selectedFile) return;
+
+            const modelsToRun = [
+                { id: "autoencoder", name: "Convolutional AE" },
+                { id: "vae", name: "Variational AE" },
+                { id: "transformer_vae", name: "Transformer-VAE" },
+                { id: "normal_only_autoencoder", name: "Normal-Only AE" },
+                { id: "sd_vae", name: "SD-VAE Reference" },
+                { id: "vit_mae", name: "ViT-MAE Reference" }
+            ];
+
+            const batchContainer = document.getElementById('batch-results-container');
+            const batchGrid = document.getElementById('batch-grid');
+            batchGrid.innerHTML = '';
+            batchContainer.style.display = 'block';
+
+            loadingText.innerText = `Evaluating all 6 pretrained models...`;
+            loadingOverlay.classList.add('active');
+            btnCompareAll.disabled = true;
+
+            const upscale = toggleUpscale.checked;
+
+            try {
+                for (let m of modelsToRun) {
+                    const formData = new FormData();
+                    formData.append('file', selectedFile);
+                    formData.append('model_name', m.id);
+                    formData.append('upscale', upscale);
+
+                    try {
+                        const res = await fetch('/api/reconstruct', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        if (res.ok) {
+                            const resData = await res.json();
+                            const card = document.createElement('div');
+                            card.className = 'batch-card';
+                            card.innerHTML = `
+                                <div class="batch-card-header">
+                                    <div class="batch-card-title">${m.name}</div>
+                                </div>
+                                <div class="batch-img-wrap">
+                                    <img src="${resData.reconstructed}" alt="${m.name}">
+                                </div>
+                                <div class="batch-metrics">
+                                    <div>PSNR: <span class="batch-metric-val">${resData.psnr.toFixed(1)} dB</span></div>
+                                    <div>SSIM: <span class="batch-metric-val">${(resData.ssim * 100).toFixed(0)}%</span></div>
+                                    <div style="grid-column: span 2;">MSE: <span class="batch-metric-val">${resData.mse.toFixed(5)}</span></div>
+                                </div>
+                            `;
+                            batchGrid.appendChild(card);
+                        }
+                    } catch (e) {
+                        console.warn(`Model ${m.id} failed in batch:`, e);
+                    }
+                }
+                showToast("Completed comparative evaluation of all models!", "✨");
+                batchContainer.scrollIntoView({ behavior: 'smooth' });
+            } catch (err) {
+                showToast("Error running comparative evaluation", "❌");
+            } finally {
+                loadingOverlay.classList.remove('active');
+                btnCompareAll.disabled = false;
+            }
+        });
+
+        // Download Output Image
+        document.getElementById('btn-download-output').addEventListener('click', () => {
+            if (!lastInferenceData || !lastInferenceData.reconstructed) return;
+            const link = document.createElement('a');
+            link.href = lastInferenceData.reconstructed;
+            const modelVal = modelSelect.value;
+            link.download = `gastrolens_${modelVal}_output.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("Downloaded model output image", "⬇️");
+        });
+
+        // Copy Output Image to Clipboard
+        document.getElementById('btn-copy-output').addEventListener('click', async () => {
+            if (!lastInferenceData || !lastInferenceData.reconstructed) return;
+            try {
+                const res = await fetch(lastInferenceData.reconstructed);
+                const blob = await res.blob();
+                await navigator.clipboard.write([
+                    new ClipboardItem({ 'image/png': blob })
+                ]);
+                showToast("Output image copied to clipboard!", "📋");
+            } catch (err) {
+                showToast("Could not copy directly to clipboard", "⚠️");
+            }
+        });
+    </script>
+</body>
+</html>

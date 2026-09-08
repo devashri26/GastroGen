@@ -1,0 +1,75 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Python & Caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Jupyter & IDEs
+.ipynb_checkpoints
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Large Datasets & Zip Archives (Keep git repository clean)
+data_dir/
+data/
+*.zip
+metrics*.zip
+models.zip
+
+# Large Reference Benchmark Checkpoints (>100MB exceeds GitHub limits)
+*.safetensors
+models/**/pretrained_reference/
+models/**/pretrained_vit_mae_reference/
+
+# Backup model checkpoints
+*.pth.old
+*.old
+
+# Raw FID metric image folders (thousands of temporary PNGs)
+metrics/**/fid_real/
+metrics/**/fid_fake/
+metrics/**/fid_real/**
+metrics/**/fid_fake/**
+
+# Logs & Environment
+*.log
+.env
+.env.local
+
+# Allow built frontend distribution for zero-setup deployment
+!frontend/dist/
+!frontend/dist/**
+
+# Allow trained PyTorch production weights (<70MB each, well within GitHub 100MB limit)
+!models/
+!models/autoencoder/autoencoder_best.pth
+!models/vae/vae_best.pth
+!models/transformer/transformer_best.pth
+!models/autoencoder_normal_only/autoencoder_normal_only_best.pth
+!models/RealESRGAN_x4plus.pth

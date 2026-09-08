@@ -1,0 +1,20 @@
+{
+  "trained_on_classes": [
+    "normal-cecum",
+    "normal-pylorus",
+    "normal-z-line"
+  ],
+  "evaluated_disease_classes": [
+    "polyps",
+    "esophagitis",
+    "ulcerative-colitis",
+    "dyed-lifted-polyps",
+    "dyed-resection-margins"
+  ],
+  "normal_error_mean": 0.0016239760229170013,
+  "normal_error_std": 0.000921346334014427,
+  "disease_error_mean": 0.005928885881614406,
+  "disease_error_std": 0.004717158423369323,
+  "roc_auc": 0.8553493333333333,
+  "suggested_threshold": 0.002969038439914584
+}

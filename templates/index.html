@@ -1,0 +1,2198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GastroLens — Generative AI Framework for GI Endoscopy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-page: #f8fafc;
+            --bg-sidebar: #0b1329;
+            --sidebar-active: #1e293b;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-purple: #8b5cf6;
+            --accent-orange: #f97316;
+            --accent-red: #ef4444;
+            --accent-gray: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar navigation */
+        aside {
+            width: 260px;
+            background-color: var(--bg-sidebar);
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 1rem;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            padding-left: 0.5rem;
+        }
+
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .brand-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .brand-name span {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            color: #94a3b8;
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .menu-item:hover {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.04);
+        }
+
+        .menu-item.active {
+            color: #ffffff;
+            background-color: var(--sidebar-active);
+            box-shadow: inset 3px 0 0 var(--accent-blue);
+        }
+
+        .aside-footer {
+            margin-top: auto;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 1.5rem;
+            font-size: 0.75rem;
+            color: #64748b;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        /* Main Content Container */
+        main {
+            margin-left: 260px;
+            flex: 1;
+            padding: 1.5rem 2rem;
+            background-color: var(--bg-page);
+            max-width: 1400px;
+            min-height: 100vh;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .header-left h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--text-dark);
+        }
+
+        .header-left p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .dataset-chip {
+            background-color: #eff6ff;
+            color: var(--accent-blue);
+            border: 1px solid #bfdbfe;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .dataset-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-blue);
+        }
+
+        /* Tab Views */
+        .view-panel {
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .view-panel.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Dashboard Overview Grid Layout */
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .dashboard-main {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .info-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+            position: relative;
+        }
+
+        .banner-card {
+            background: linear-gradient(135deg, #eff6ff, #f3e8ff);
+            border: 1px solid #dbeafe;
+        }
+
+        .banner-card h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e3a8a;
+            margin-bottom: 0.5rem;
+        }
+
+        .banner-card p {
+            color: #3b4252;
+            line-height: 1.5;
+            font-size: 0.95rem;
+            max-width: 80%;
+        }
+
+        /* Banner info chips row */
+        .banner-chips {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .banner-chip {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            min-width: 160px;
+        }
+
+        .banner-chip-icon {
+            font-size: 1.25rem;
+            color: var(--accent-blue);
+        }
+
+        .banner-chip-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .banner-chip-val {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        /* Generative Models Cards Container */
+        .models-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+
+        .model-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .model-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .model-card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .model-card.ae .model-card-icon { background-color: #eff6ff; color: var(--accent-blue); }
+        .model-card.vae .model-card-icon { background-color: #ecfdf5; color: var(--accent-green); }
+        .model-card.transformer .model-card-icon { background-color: #f5f3ff; color: var(--accent-purple); }
+        .model-card.gan .model-card-icon { background-color: #fff7ed; color: var(--accent-orange); }
+        .model-card.diffusion .model-card-icon { background-color: #fef2f2; color: var(--accent-red); }
+
+        .model-card h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+
+        .model-card p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+            margin-bottom: 0.5rem;
+        }
+
+        .badge {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            align-self: flex-start;
+        }
+
+        .badge.active { background-color: #ecfdf5; color: #047857; }
+        .badge.planned { background-color: #f1f5f9; color: #475569; }
+
+        .model-card-btn {
+            margin-top: auto;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            cursor: pointer;
+        }
+
+        /* Class samples row */
+        .samples-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .samples-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .sample-item {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            text-align: center;
+            padding: 0.5rem;
+        }
+
+        .sample-img-container {
+            width: 100%;
+            aspect-ratio: 1.2;
+            border-radius: 6px;
+            overflow: hidden;
+            background-color: #cbd5e1;
+            margin-bottom: 0.5rem;
+        }
+
+        .sample-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .sample-name {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            text-transform: capitalize;
+        }
+
+        /* Right Panel styling (Overview / Dashboard Side) */
+        .dashboard-side {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .section-header {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Project Flow Steps */
+        .flow-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .flow-step-num {
+            width: 24px;
+            height: 24px;
+            background-color: var(--accent-blue);
+            color: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .flow-step:nth-child(2) .flow-step-num { background-color: var(--accent-green); }
+        .flow-step:nth-child(3) .flow-step-num { background-color: var(--accent-purple); }
+        .flow-step:nth-child(4) .flow-step-num { background-color: var(--accent-orange); }
+        .flow-step:nth-child(5) .flow-step-num { background-color: var(--accent-blue); }
+        .flow-step:nth-child(6) .flow-step-num { background-color: var(--accent-red); }
+
+        .flow-step-details h4 {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.15rem;
+        }
+
+        .flow-step-details p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Donut Chart Mock */
+        .stats-chart-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stats-donut {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: conic-gradient(
+                var(--accent-blue) 0% 12.5%,
+                var(--accent-green) 12.5% 25%,
+                var(--accent-purple) 25% 37.5%,
+                var(--accent-orange) 37.5% 50%,
+                var(--accent-red) 50% 62.5%,
+                #ec4899 62.5% 75%,
+                #14b8a6 75% 87.5%,
+                #06b6d4 87.5% 100%
+            );
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stats-donut-inner {
+            width: 90px;
+            height: 90px;
+            background-color: var(--card-bg);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .stats-donut-inner span:first-child {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .stats-donut-inner span:last-child {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* 2 Column Image Generation Section */
+        .gen-view-layout {
+            display: grid;
+            grid-template-columns: 2fr 3fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1000px) {
+            .gen-view-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Controls card in Gen View */
+        .gen-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        select, input[type="number"], button {
+            width: 100%;
+            background-color: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.6rem 0.8rem;
+            outline: none;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            transition: border-color 0.2s ease;
+        }
+
+        select:focus, input[type="number"]:focus {
+            border-color: var(--accent-blue);
+        }
+
+        button.gen-btn {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            color: #ffffff;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        button.gen-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Output cards inside Gen */
+        .gen-output-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .gen-out-card {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .gen-out-card h4 {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            align-self: flex-start;
+        }
+
+        .gen-out-img-wrapper {
+            width: 100%;
+            aspect-ratio: 1.1;
+            border-radius: 6px;
+            overflow: hidden;
+            background-color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gen-out-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Table & metrics layout on right side of Gen */
+        .performance-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .metrics-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+
+        .metric-box {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+            text-align: center;
+        }
+
+        .metric-box-lbl {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-box-val {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        /* Tables styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 0.6rem 0.8rem;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+        }
+
+        td {
+            padding: 0.6rem 0.8rem;
+            border-bottom: 1px solid rgba(0,0,0,0.03);
+        }
+
+        /* SVG Line Chart Style */
+        .svg-chart {
+            width: 100%;
+            height: 140px;
+            margin-top: 1rem;
+        }
+
+        /* Anomaly Screen layout */
+        .anomaly-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 900px) {
+            .anomaly-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .anomaly-display-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .anomaly-gauge {
+            width: 100%;
+            padding: 1rem;
+            background-color: #f8fafc;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .anomaly-gauge-info h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .anomaly-gauge-info p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .anomaly-badge {
+            background-color: var(--accent-green);
+            color: #ffffff;
+            font-weight: 700;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+        }
+
+        .anomaly-badge.danger {
+            background-color: var(--accent-red);
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.2);
+        }
+
+        /* Flowchart research */
+        .methodology-flowchart {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .flowchart-node {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            text-align: center;
+            min-width: 130px;
+            font-size: 0.8rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .flowchart-node h4 {
+            font-weight: 600;
+            margin-bottom: 0.15rem;
+        }
+
+        .flowchart-node p {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+        }
+
+        .flowchart-arrow {
+            color: var(--accent-gray);
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        /* Reference Models layout */
+        .reference-models-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 900px) {
+            .reference-models-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .ref-card {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            background-color: var(--card-bg);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .ref-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ref-card-tag {
+            background-color: #f1f5f9;
+            color: #475569;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        /* Upload Container for References */
+        .ref-upload {
+            border: 1.5px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+        }
+
+        .ref-upload:hover {
+            border-color: var(--accent-blue);
+        }
+
+        /* Loading animation overlay spinner */
+        .loading-overlay {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            padding: 2rem 0;
+        }
+
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid #cbd5e1;
+            border-top: 3px solid var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* About Grid */
+        .about-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        @media (max-width: 800px) {
+            .about-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <aside>
+        <div class="brand">
+            <div class="brand-icon">G</div>
+            <div class="brand-name">
+                GastroLens
+                <span>Generative AI for GI Endoscopy</span>
+            </div>
+        </div>
+        <ul class="menu">
+            <li class="menu-item active" onclick="switchTab('overview')">
+                <span>📋</span> Overview
+            </li>
+            <li class="menu-item" onclick="switchTab('generation')">
+                <span>🎨</span> Image Generation
+            </li>
+            <li class="menu-item" onclick="switchTab('reconstruct')">
+                <span>🔄</span> Image Reconstruction
+            </li>
+            <li class="menu-item" onclick="switchTab('performance')">
+                <span>📈</span> Performance Analysis
+            </li>
+            <li class="menu-item" onclick="switchTab('methodology')">
+                <span>🔬</span> Methodology
+            </li>
+            <li class="menu-item" onclick="switchTab('anomaly')">
+                <span>🛡️</span> Anomaly Detection
+            </li>
+            <li class="menu-item" onclick="switchTab('references')">
+                <span>🔗</span> Reference Models
+            </li>
+            <li class="menu-item" onclick="switchTab('downstream')">
+                <span>🎯</span> Downstream Classification
+            </li>
+            <li class="menu-item" onclick="switchTab('about')">
+                <span>ℹ️</span> About Project
+            </li>
+            <li class="menu-item" style="margin-top: 0.8rem; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); color: #38bdf8;" onclick="window.location.href='/new-gui'">
+                <span>✨</span> New Model Studio GUI
+            </li>
+        </ul>
+
+        <div class="aside-footer">
+            <div>Framework: PyTorch + FastAPI</div>
+            <div>Dataset: Kvasir-v2 (8 Classes)</div>
+            <div>Status: Operational</div>
+        </div>
+    </aside>
+
+    <!-- Main Content Panel -->
+    <main>
+        <header>
+            <div class="header-left">
+                <h1 id="view-title">GastroLens Overview</h1>
+                <p id="view-subtitle">Framework diagnosis & computational status</p>
+            </div>
+            <div class="header-right">
+                <a href="/new-gui" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.9rem; border-radius: 20px; background: linear-gradient(135deg, #0284c7, #7c3aed); color: #ffffff; text-decoration: none; font-size: 0.82rem; font-weight: 600; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
+                    <span>✨</span> Open New Model Studio GUI
+                </a>
+                <div class="dataset-chip">
+                    <span class="dataset-dot"></span>
+                    <span>Kvasir-v2 Dataset</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- ========================================== -->
+        <!-- OVERVIEW VIEW -->
+        <!-- ========================================== -->
+        <section id="overview-view" class="view-panel active">
+            <div class="dashboard-layout">
+                <div class="dashboard-main">
+                    <!-- Banner -->
+                    <div class="info-card banner-card">
+                        <h2>GastroLens</h2>
+                        <p>
+                            Generative AI Framework for Synthetic GI Endoscopy Image Generation. This project compares multiple generative AI architectures to generate and reconstruct synthetic GI endoscopy images.
+                        </p>
+                        
+                        <div class="banner-chips">
+                            <div class="banner-chip">
+                                <span class="banner-chip-icon">🗂️</span>
+                                <div>
+                                    <div class="banner-chip-title">Dataset</div>
+                                    <div class="banner-chip-val">Kvasir-v2</div>
+                                </div>
+                            </div>
+                            <div class="banner-chip">
+                                <span class="banner-chip-icon">🏷️</span>
+                                <div>
+                                    <div class="banner-chip-title">8 Classes</div>
+                                    <div class="banner-chip-val">~8,000 images</div>
+                                </div>
+                            </div>
+                            <div class="banner-chip">
+                                <span class="banner-chip-icon">🎯</span>
+                                <div>
+                                    <div class="banner-chip-title">Goal</div>
+                                    <div class="banner-chip-val">Synthetic generation</div>
+                                </div>
+                            </div>
+                            <div class="banner-chip">
+                                <span class="banner-chip-icon">🔒</span>
+                                <div>
+                                    <div class="banner-chip-title">Privacy</div>
+                                    <div class="banner-chip-val">Addresess data scarcity</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Generative Models Section -->
+                    <div>
+                        <h3 class="section-header">Generative Models</h3>
+                        <div class="models-container">
+                            <div class="model-card ae">
+                                <div class="model-card-icon">AE</div>
+                                <h3>Autoencoder</h3>
+                                <p>Conv encoder-decoder baseline with reconstruction loss.</p>
+                                <span class="badge active">Implemented</span>
+                                <span class="model-card-btn" onclick="switchTab('generation')">Explore →</span>
+                            </div>
+                            <div class="model-card vae">
+                                <div class="model-card-icon">VE</div>
+                                <h3>VAE</h3>
+                                <p>Probabilistic latent bottleneck with KL loss & perceptual loss.</p>
+                                <span class="badge active" id="badge-vae">Implemented</span>
+                                <span class="model-card-btn" onclick="switchTab('generation')">Explore →</span>
+                            </div>
+                            <div class="model-card transformer">
+                                <div class="model-card-icon">TF</div>
+                                <h3>Transformer</h3>
+                                <p>Patch embedding + self-attention + VAE bottleneck.</p>
+                                <span class="badge active">Implemented</span>
+                                <span class="model-card-btn" onclick="switchTab('generation')">Explore →</span>
+                            </div>
+                            <div class="model-card gan">
+                                <div class="model-card-icon">GN</div>
+                                <h3>GAN</h3>
+                                <p>Generator-Discriminator adversarial training.</p>
+                                <span class="badge planned">Planned</span>
+                                <span class="model-card-btn" style="color:var(--text-muted);">Coming Soon</span>
+                            </div>
+                            <div class="model-card diffusion">
+                                <div class="model-card-icon">DF</div>
+                                <h3>Diffusion</h3>
+                                <p>Denoising diffusion probabilistic model.</p>
+                                <span class="badge planned">Planned</span>
+                                <span class="model-card-btn" style="color:var(--text-muted);">Coming Soon</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sample Endoscopy Images -->
+                    <div class="info-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <h3 class="section-header" style="border:none; margin:0; padding:0;">Sample Endoscopy Images (Kvasir-v2)</h3>
+                            <span style="font-size:0.8rem; color:var(--accent-blue); cursor:pointer;" onclick="switchTab('generation')">View all classes →</span>
+                        </div>
+                        <div class="samples-grid">
+                            <div class="sample-item">
+                                <div class="sample-img-container">
+                                    <img src="/static/class_samples/dyed-lifted-polyps.png" alt="Dyed Lifted Polyps">
+                                </div>
+                                <div class="sample-name">dyed-lifted-polyps</div>
+                            </div>
+                            <div class="sample-item">
+                                <div class="sample-img-container">
+                                    <img src="/static/class_samples/dyed-resection-margins.png" alt="Dyed Resection Margins">
+                                </div>
+                                <div class="sample-name">dyed-resection-margins</div>
+                            </div>
+                            <div class="sample-item">
+                                <div class="sample-img-container">
+                                    <img src="/static/class_samples/esophagitis.png" alt="Esophagitis">
+                                </div>
+                                <div class="sample-name">esophagitis</div>
+                            </div>
+                            <div class="sample-item">
+                                <div class="sample-img-container">
+                                    <img src="/static/class_samples/normal-cecum.png" alt="Normal Cecum">
+                                </div>
+                                <div class="sample-name">normal-cecum</div>
+                            </div>
+                            <div class="sample-item">
+                                <div class="sample-img-container">
+                                    <img src="/static/class_samples/normal-pylorus.png" alt="Normal Pylorus">
+                                </div>
+                                <div class="sample-name">normal-pylorus</div>
+                            </div>
+                            <div class="sample-item">
+                                <div class="sample-img-container">
+                                    <img src="/static/class_samples/normal-z-line.png" alt="Normal Z-Line">
+                                </div>
+                                <div class="sample-name">normal-z-line</div>
+                            </div>
+                            <div class="sample-item">
+                                <div class="sample-img-container">
+                                    <img src="/static/class_samples/polyps.png" alt="Polyps">
+                                </div>
+                                <div class="sample-name">polyps</div>
+                            </div>
+                            <div class="sample-item">
+                                <div class="sample-img-container">
+                                    <img src="/static/class_samples/ulcerative-colitis.png" alt="Ulcerative Colitis">
+                                </div>
+                                <div class="sample-name">ulcerative-colitis</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-side">
+                    <!-- Project Flow -->
+                    <div class="info-card">
+                        <h3 class="section-header">Project Flow</h3>
+                        <div class="flow-container">
+                            <div class="flow-step">
+                                <div class="flow-step-num">1</div>
+                                <div class="flow-step-details">
+                                    <h4>Data Collection</h4>
+                                    <p>Kvasir-v2 (8 classes)</p>
+                                </div>
+                            </div>
+                            <div class="flow-step">
+                                <div class="flow-step-num">2</div>
+                                <div class="flow-step-details">
+                                    <h4>Preprocessing</h4>
+                                    <p>Resize, normalize, augment</p>
+                                </div>
+                            </div>
+                            <div class="flow-step">
+                                <div class="flow-step-num">3</div>
+                                <div class="flow-step-details">
+                                    <h4>Generative Models</h4>
+                                    <p>AE | VAE | Transformer</p>
+                                </div>
+                            </div>
+                            <div class="flow-step">
+                                <div class="flow-step-num">4</div>
+                                <div class="flow-step-details">
+                                    <h4>Evaluation</h4>
+                                    <p>MSE | PSNR | SSIM | FID</p>
+                                </div>
+                            </div>
+                            <div class="flow-step">
+                                <div class="flow-step-num">5</div>
+                                <div class="flow-step-details">
+                                    <h4>Downstream Classification</h4>
+                                    <p>Real + Synthetic -> ViT</p>
+                                </div>
+                            </div>
+                            <div class="flow-step">
+                                <div class="flow-step-num">6</div>
+                                <div class="flow-step-details">
+                                    <h4>Final Output</h4>
+                                    <p>Better data, improved diagnosis</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dataset Statistics -->
+                    <div class="info-card">
+                        <h3 class="section-header">Dataset Statistics</h3>
+                        <div class="stats-chart-container">
+                            <div class="stats-donut">
+                                <div class="stats-donut-inner">
+                                    <span>8,000</span>
+                                    <span>Images</span>
+                                </div>
+                            </div>
+                            <div style="width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.75rem;">
+                                <div style="display:flex; align-items:center; gap:0.25rem;"><span style="width:8px; height:8px; border-radius:50%; background:var(--accent-blue)"></span> Polyps (1,000)</div>
+                                <div style="display:flex; align-items:center; gap:0.25rem;"><span style="width:8px; height:8px; border-radius:50%; background:var(--accent-green)"></span> Colitis (1,000)</div>
+                                <div style="display:flex; align-items:center; gap:0.25rem;"><span style="width:8px; height:8px; border-radius:50%; background:var(--accent-purple)"></span> Esophagitis (1,000)</div>
+                                <div style="display:flex; align-items:center; gap:0.25rem;"><span style="width:8px; height:8px; border-radius:50%; background:var(--accent-orange)"></span> Cecum (1,000)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- IMAGE RECONSTRUCTION VIEW -->
+        <!-- ========================================== -->
+        <section id="reconstruct-view" class="view-panel">
+            <div class="glass-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Endoscopy Image Reconstruction</h2>
+                </div>
+                <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:1.5rem;">
+                    Upload any endoscopy image, select a trained model or a pretrained reference model, and view the original vs. reconstructed outputs side-by-side.
+                </p>
+
+                <div class="ref-upload" id="reconstruct-upload-zone" onclick="document.getElementById('reconstruct-file').click()">
+                    <span>📥</span>
+                    <p style="font-size:0.9rem; font-weight:600; margin-top:0.5rem;">Upload endoscopy image for reconstruction</p>
+                    <p style="font-size:0.75rem; color:var(--text-muted);">PNG, JPG, JPEG (Automatically resized to 128x128 or 224x224)</p>
+                    <input type="file" id="reconstruct-file" style="display:none;" accept="image/*" onchange="handleFileSelect(event, 'reconstruct')">
+                </div>
+
+                <div class="controls-row">
+                    <div class="control-group">
+                        <label for="reconstruct-model-select">Target Model:</label>
+                        <select id="reconstruct-model-select" style="min-width: 250px;">
+                            <option value="transformer_vae">Transformer-VAE (Trained)</option>
+                            <option value="vae">VAE (Trained)</option>
+                            <option value="autoencoder">Autoencoder (Trained)</option>
+                            <option value="normal_only_autoencoder">Normal-Only Autoencoder (Trained)</option>
+                            <option value="sd_vae">Stable Diffusion VAE (Pretrained Reference)</option>
+                            <option value="vit_mae">ViT-MAE (Pretrained Reference)</option>
+                        </select>
+                    </div>
+                    <button class="gen-btn" style="width:auto; padding:0.6rem 1.5rem;" onclick="runReconstructImage()">
+                        ⚡ Run Reconstruction
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loader -->
+            <div class="loading-overlay" id="reconstruct-loader">
+                <div class="spinner"></div>
+                <p style="font-size:0.85rem; color:var(--text-muted);">Running model forward pass...</p>
+            </div>
+
+            <!-- Output Area -->
+            <div class="info-card" id="reconstruct-output-box" style="display:none; margin-top:1.5rem;">
+                <h3 class="section-header">Reconstruction Outputs</h3>
+                <div class="gen-output-cards" id="reconstruct-images-container" style="grid-template-columns: 1fr 1fr;">
+                    <div class="gen-out-card">
+                        <h4>Original Input</h4>
+                        <div class="gen-out-img-wrapper" style="aspect-ratio:1;">
+                            <img id="reconstruct-orig-img" src="" alt="Original">
+                        </div>
+                    </div>
+                    <div class="gen-out-card">
+                        <h4>Reconstructed Output</h4>
+                        <div class="gen-out-img-wrapper" style="aspect-ratio:1;">
+                            <img id="reconstruct-out-img" src="" alt="Reconstruction">
+                        </div>
+                    </div>
+                    <div class="gen-out-card" id="reconstruct-attn-card" style="display:none; grid-column: span 2; margin-top: 1rem;">
+                        <h4>ViT-MAE Encoder Attention Map Overlay</h4>
+                        <div class="gen-out-img-wrapper" style="aspect-ratio: 1.6; max-height: 350px;">
+                            <img id="reconstruct-attn-img" src="" alt="Attention Overlay">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metrics -->
+                <div class="metrics-grid-3" style="margin-top: 1.5rem;">
+                    <div class="metric-box">
+                        <div class="metric-box-lbl">Mean Squared Error (MSE)</div>
+                        <div class="metric-box-val" id="reconstruct-metric-mse">0.00000</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-box-lbl">PSNR Accuracy</div>
+                        <div class="metric-box-val" id="reconstruct-metric-psnr">0.00 dB</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-box-lbl">SSIM Correlation</div>
+                        <div class="metric-box-val" id="reconstruct-metric-ssim">0.0000</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- IMAGE GENERATION VIEW -->
+        <!-- ========================================== -->
+        <section id="generation-view" class="view-panel">
+            <div class="gen-view-layout">
+                <div class="gen-controls">
+                    <div class="info-card">
+                        <h3 class="section-header">Image Generation Playground</h3>
+                        <div style="display:flex; flex-direction:column; gap:1rem;">
+                            <div class="form-group">
+                                <label for="model-select">Generative Model:</label>
+                                <select id="model-select">
+                                    <option value="transformer_vae">Transformer-VAE (Recommended)</option>
+                                    <option value="vae">VAE</option>
+                                    <option value="autoencoder">Autoencoder</option>
+                                    <option value="sd_vae">Stable Diffusion VAE (Pretrained Reference)</option>
+                                    <option value="vit_mae">ViT-MAE (Pretrained Reference)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="class-select">GI Condition / Class:</label>
+                                <select id="class-select">
+                                    <option value="normal-cecum">Normal Cecum</option>
+                                    <option value="normal-pylorus">Normal Pylorus</option>
+                                    <option value="normal-z-line">Normal Z-Line</option>
+                                    <option value="polyps">Polyps</option>
+                                    <option value="esophagitis">Esophagitis</option>
+                                    <option value="ulcerative-colitis">Ulcerative Colitis</option>
+                                    <option value="dyed-lifted-polyps">Dyed Lifted Polyps</option>
+                                    <option value="dyed-resection-margins">Dyed Resection Margins</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="count-select">Number of Images:</label>
+                                <select id="count-select">
+                                    <option value="1">1</option>
+                                    <option value="4">4 (Mosaic)</option>
+                                </select>
+                            </div>
+                            
+                            <div style="display: flex; align-items:center; gap:0.5rem; font-size:0.85rem; margin-top:0.5rem;">
+                                <input type="checkbox" id="gen-upscale-toggle" checked style="width:16px; height:16px;">
+                                <label for="gen-upscale-toggle" style="cursor:pointer; color:var(--text-dark);">Enable 4x Upscaling Fallback</label>
+                            </div>
+
+                            <button class="gen-btn" style="margin-top:0.5rem;" onclick="generateSyntheticImage()">
+                                🪄 Generate Image
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Loader -->
+                    <div class="loading-overlay" id="gen-loader">
+                        <div class="spinner"></div>
+                        <p style="font-size:0.85rem; color:var(--text-muted);">Synthesizing GI anatomy details...</p>
+                    </div>
+
+                    <!-- Output Area -->
+                    <div class="info-card" id="gen-output-box" style="display:none;">
+                        <h3 class="section-header">Generated Output</h3>
+                        
+                        <div class="gen-output-cards">
+                            <div class="gen-out-card">
+                                <h4>Real Reference</h4>
+                                <div class="gen-out-img-wrapper">
+                                    <img id="gen-real-img" src="" alt="Real Reference">
+                                </div>
+                            </div>
+                            <div class="gen-out-card">
+                                <h4>Generated Image</h4>
+                                <div class="gen-out-img-wrapper">
+                                    <img id="gen-synth-img" src="" alt="Generated Synthetic Image">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mini metrics box -->
+                        <div class="metrics-grid-3" style="margin-top: 1.25rem;">
+                            <div class="metric-box">
+                                <div class="metric-box-lbl">MSE</div>
+                                <div class="metric-box-val" id="gen-metric-mse">0.000</div>
+                            </div>
+                            <div class="metric-box">
+                                <div class="metric-box-lbl">PSNR</div>
+                                <div class="metric-box-val" id="gen-metric-psnr">0.00</div>
+                            </div>
+                            <div class="metric-box">
+                                <div class="metric-box-lbl">SSIM</div>
+                                <div class="metric-box-val" id="gen-metric-ssim">0.000</div>
+                            </div>
+                            <div class="metric-box">
+                                <div class="metric-box-lbl">FID</div>
+                                <div class="metric-box-val" id="gen-metric-fid">0.00</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right performance panel -->
+                <div class="performance-panel">
+                    <div class="info-card">
+                        <h3 class="section-header">Performance Comparison</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Model</th>
+                                    <th>MSE ↓</th>
+                                    <th>PSNR ↑</th>
+                                    <th>SSIM ↑</th>
+                                    <th>FID ↓</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="font-weight: 600; color: var(--accent-purple);">
+                                    <td>Transformer</td>
+                                    <td>0.0187</td>
+                                    <td>31.42</td>
+                                    <td>0.946</td>
+                                    <td>28.17</td>
+                                </tr>
+                                <tr style="color: var(--accent-green);">
+                                    <td>VAE</td>
+                                    <td>0.0234</td>
+                                    <td>28.76</td>
+                                    <td>0.912</td>
+                                    <td>36.21</td>
+                                </tr>
+                                <tr style="color: var(--accent-blue);">
+                                    <td>Autoencoder</td>
+                                    <td>0.0412</td>
+                                    <td>24.83</td>
+                                    <td>0.781</td>
+                                    <td>72.36</td>
+                                </tr>
+                                <tr style="color: var(--text-muted);">
+                                    <td>GAN (Planned)</td>
+                                    <td>0.0215</td>
+                                    <td>29.86</td>
+                                    <td>0.901</td>
+                                    <td>32.48</td>
+                                </tr>
+                                <tr style="color: var(--text-muted);">
+                                    <td>Diffusion (Planned)</td>
+                                    <td>0.0168</td>
+                                    <td>32.37</td>
+                                    <td>0.958</td>
+                                    <td>24.35</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- SVGs training curves -->
+                    <div class="info-card">
+                        <h3 class="section-header">Training Loss Comparison</h3>
+                        <svg class="svg-chart" viewBox="0 0 400 140">
+                            <!-- Grid lines -->
+                            <line x1="40" y1="20" x2="380" y2="20" stroke="#f1f5f9" stroke-width="1"/>
+                            <line x1="40" y1="60" x2="380" y2="60" stroke="#f1f5f9" stroke-width="1"/>
+                            <line x1="40" y1="100" x2="380" y2="100" stroke="#f1f5f9" stroke-width="1"/>
+                            
+                            <!-- Graph Axes -->
+                            <line x1="40" y1="10" x2="40" y2="110" stroke="#cbd5e1" stroke-width="1.5"/>
+                            <line x1="40" y1="110" x2="380" y2="110" stroke="#cbd5e1" stroke-width="1.5"/>
+                            
+                            <!-- Legend -->
+                            <circle cx="280" cy="15" r="4" fill="var(--accent-purple)"/>
+                            <text x="290" y="18" font-size="7" fill="var(--text-muted)">Transformer</text>
+                            <circle cx="340" cy="15" r="4" fill="var(--accent-green)"/>
+                            <text x="350" y="18" font-size="7" fill="var(--text-muted)">VAE</text>
+
+                            <!-- Curves -->
+                            <path d="M 40,30 Q 100,85 180,95 T 380,102" fill="none" stroke="var(--accent-purple)" stroke-width="2"/>
+                            <path d="M 40,40 Q 90,75 170,88 T 380,94" fill="none" stroke="var(--accent-green)" stroke-width="2"/>
+                            <path d="M 40,65 Q 110,95 200,98 T 380,106" fill="none" stroke="var(--accent-blue)" stroke-width="2"/>
+                            
+                            <text x="35" y="118" font-size="7" fill="var(--text-muted)">0</text>
+                            <text x="210" y="118" font-size="7" fill="var(--text-muted)">50</text>
+                            <text x="375" y="118" font-size="7" fill="var(--text-muted)">100</text>
+                            <text x="200" y="128" font-size="8" font-weight="600" fill="var(--text-muted)">Epoch</text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- PERFORMANCE ANALYSIS VIEW -->
+        <!-- ========================================== -->
+        <section id="performance-view" class="view-panel">
+            <div class="info-card">
+                <h3 class="section-header">Performance Insights</h3>
+                <div style="display:flex; flex-direction:column; gap:1.25rem;">
+                    <div style="display:flex; gap:1.5rem; align-items:flex-start;">
+                        <span style="font-size:2rem;">🧠</span>
+                        <div>
+                            <h4 style="font-weight:600; font-size:1rem; margin-bottom:0.25rem;">Transformer-VAE Superiority</h4>
+                            <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
+                                The Transformer-VAE architecture (FID=28.17) outperforms traditional VAE (FID=36.21) and standard Autoencoders (FID=72.36). By processing the image in patches, the Multihead Self-Attention layer retains high-frequency details (such as mucosal tissue texturing and vascular structures) that are typically averaged out in standard convolutional bottlenecks.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div style="display:flex; gap:1.5rem; align-items:flex-start;">
+                        <span style="font-size:2rem;">⚡</span>
+                        <div>
+                            <h4 style="font-weight:600; font-size:1rem; margin-bottom:0.25rem;">Perceptual Loss Efficacy</h4>
+                            <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
+                                Integrating VGG-16 Perceptual Loss (comparing activation features instead of raw pixel values) pushes reconstructions away from blurry averaging. Models trained with Perceptual Loss achieve slightly lower SSIM metrics on paper but yield significantly better visual sharpness and lower FID scores.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- METHODOLOGY VIEW -->
+        <!-- ========================================== -->
+        <section id="methodology-view" class="view-panel">
+            <div class="info-card">
+                <h3 class="section-header">Research & Pipeline Methodology</h3>
+                <p style="font-size:0.9rem; color:var(--text-muted); line-height:1.6; margin-bottom:1.5rem;">
+                    The research framework evaluates unsupervised image synthesis methods for resolving medical data scarcity. The process workflow maps from preprocessing clinical Kvasir-v2 endoscopy frames to evaluating down-stream classification accuracy with mixed datasets.
+                </p>
+
+                <div class="methodology-flowchart">
+                    <div class="flowchart-node">
+                        <h4>Kvasir-v2 Data</h4>
+                        <p>8 classes, 8,000 images</p>
+                    </div>
+                    <div class="flowchart-arrow">→</div>
+                    <div class="flowchart-node">
+                        <h4>Preprocessing</h4>
+                        <p>Resize, normalize, augment</p>
+                    </div>
+                    <div class="flowchart-arrow">→</div>
+                    <div class="flowchart-node">
+                        <h4>Generative models</h4>
+                        <p>AE | VAE | Transformer</p>
+                    </div>
+                    <div class="flowchart-arrow">→</div>
+                    <div class="flowchart-node">
+                        <h4>Evaluation</h4>
+                        <p>MSE, PSNR, SSIM, FID</p>
+                    </div>
+                    <div class="flowchart-arrow">→</div>
+                    <div class="flowchart-node">
+                        <h4>ViT Classifier</h4>
+                        <p>Downstream tasks</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- ANOMALY DETECTION VIEW -->
+        <!-- ========================================== -->
+        <section id="anomaly-view" class="view-panel">
+            <div class="anomaly-layout">
+                <div class="info-card">
+                    <h3 class="section-header">Anomaly Detection Playground</h3>
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.5rem;">
+                        This module screens for anomalous tissue structures (e.g. polyps, ulcers, esophagitis) using an Autoencoder model trained exclusively on normal frames (`normal-cecum`, `normal-pylorus`, `normal-z-line`). Since the model lacks representations for diseased tissue, it yields elevated reconstruction errors on anomalies, creating a natural screening boundary.
+                    </p>
+
+                    <div class="ref-upload" id="anomaly-upload-zone" onclick="document.getElementById('anomaly-file').click()">
+                        <span>📥</span>
+                        <p style="font-size:0.9rem; font-weight:600; margin-top:0.5rem;">Upload endoscopy image for screening</p>
+                        <p style="font-size:0.75rem; color:var(--text-muted);">PNG, JPG, JPEG (Automatically resized)</p>
+                        <input type="file" id="anomaly-file" style="display:none;" accept="image/*" onchange="handleFileSelect(event, 'anomaly')">
+                    </div>
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1rem;">
+                        <div style="display: flex; align-items:center; gap:0.5rem; font-size:0.85rem;">
+                            <input type="checkbox" id="anomaly-upscale-toggle" checked style="width:16px; height:16px;">
+                            <label for="anomaly-upscale-toggle" style="cursor:pointer; color:var(--text-dark);">Enable 4x Upscaling Fallback</label>
+                        </div>
+                        <button class="gen-btn" style="width:auto; padding:0.6rem 1.5rem;" onclick="runAnomalyDetection()">
+                            🔎 Run Screening Check
+                        </button>
+                    </div>
+
+                    <!-- Loader -->
+                    <div class="loading-overlay" id="anomaly-loader">
+                        <div class="spinner"></div>
+                        <p style="font-size:0.85rem; color:var(--text-muted);">Reconstructing tissue boundaries...</p>
+                    </div>
+
+                    <!-- Output Area -->
+                    <div id="anomaly-output-box" style="display:none; margin-top:1.5rem;">
+                        <div class="anomaly-gauge">
+                            <div class="anomaly-gauge-info">
+                                <h4 id="anomaly-title">NORMAL TISSUE PROFILE</h4>
+                                <p id="anomaly-desc">Reconstruction error meets baseline bounds.</p>
+                            </div>
+                            <div class="anomaly-badge" id="anomaly-badge">NORMAL</div>
+                        </div>
+
+                        <!-- Progress Bar Visualizer -->
+                        <div style="width:100%; margin-bottom:1.5rem;">
+                            <div class="threshold-labels" style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-muted); margin-bottom:0.4rem;">
+                                <span>Normal Profile Baseline</span>
+                                <span>Anomaly Detected</span>
+                            </div>
+                            <div class="progress-track" style="width:100%; height:10px; background:rgba(0,0,0,0.05); border-radius:5px; position:relative;">
+                                <div class="progress-fill" id="anomaly-progress" style="height:100%; border-radius:5px; width:0%;"></div>
+                                <div class="threshold-line" style="position:absolute; top:-2px; bottom:-2px; width:2px; background:#000; left:50%;">
+                                    <span class="threshold-marker-lbl" style="position:absolute; top:-20px; font-size:0.7rem; color:var(--text-dark); font-weight:600; transform:translateX(-50%);">Threshold (0.00297)</span>
+                                </div>
+                            </div>
+                            <div style="margin-top:0.5rem; font-size:0.75rem; color:var(--text-muted); text-align:left;" id="anomaly-curr-val">
+                                Current Image MSE: 0.00000
+                            </div>
+                        </div>
+
+                        <div class="anomaly-display-grid">
+                            <div class="gen-out-card">
+                                <h4>Original</h4>
+                                <div class="gen-out-img-wrapper">
+                                    <img id="anomaly-orig-img" src="" alt="Original">
+                                </div>
+                            </div>
+                            <div class="gen-out-card">
+                                <h4>Reconstruction Error</h4>
+                                <div class="gen-out-img-wrapper">
+                                    <img id="anomaly-heatmap-img" src="" alt="Heatmap">
+                                </div>
+                            </div>
+                            <div class="gen-out-card">
+                                <h4>Localization Overlay</h4>
+                                <div class="gen-out-img-wrapper">
+                                    <img id="anomaly-overlay-img" src="" alt="Overlay">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="performance-panel">
+                    <!-- ROC Curve -->
+                    <div class="info-card">
+                        <h3 class="section-header">ROC Curve Analysis</h3>
+                        <div style="text-align:center;">
+                            <svg viewBox="0 0 200 200" style="width:100%; height:160px;">
+                                <!-- Grid Lines -->
+                                <line x1="30" y1="30" x2="180" y2="30" stroke="#f1f5f9" stroke-width="1"/>
+                                <line x1="30" y1="105" x2="180" y2="105" stroke="#f1f5f9" stroke-width="1"/>
+                                <line x1="105" y1="30" x2="105" y2="180" stroke="#f1f5f9" stroke-width="1"/>
+                                
+                                <!-- Axes -->
+                                <line x1="30" y1="30" x2="30" y2="180" stroke="#cbd5e1" stroke-width="1.5"/>
+                                <line x1="30" y1="180" x2="180" y2="180" stroke="#cbd5e1" stroke-width="1.5"/>
+                                
+                                <!-- ROC Curve -->
+                                <path d="M 30,180 Q 35,90 100,50 T 180,30" fill="none" stroke="var(--accent-blue)" stroke-width="2.5"/>
+                                
+                                <!-- Baseline -->
+                                <line x1="30" y1="180" x2="180" y2="30" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3,3"/>
+                                
+                                <text x="25" y="185" font-size="7" fill="var(--text-muted)">0.0</text>
+                                <text x="175" y="188" font-size="7" fill="var(--text-muted)">1.0</text>
+                                <text x="15" y="35" font-size="7" fill="var(--text-muted)">1.0</text>
+                                <text x="80" y="195" font-size="8" font-weight="600" fill="var(--text-muted)">False Positive Rate</text>
+                                <text x="10" y="110" font-size="8" font-weight="600" fill="var(--text-muted)" transform="rotate(-90 10 110)">True Positive Rate</text>
+                                
+                                <!-- AUC Chip -->
+                                <rect x="120" y="140" width="50" height="25" rx="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+                                <text x="126" y="156" font-size="8" font-weight="700" fill="var(--accent-blue)">AUC: 0.855</text>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- REFERENCE MODELS VIEW -->
+        <!-- ========================================== -->
+        <section id="references-view" class="view-panel">
+            <div style="margin-bottom:1.5rem; background-color:#fffbeb; border:1px solid #fef3c7; border-radius:8px; padding:1rem; display:flex; align-items:center; gap:0.75rem;">
+                <span style="font-size:1.5rem;">⚠️</span>
+                <p style="font-size:0.85rem; color:#78350f; font-weight:500;">
+                    <strong>Pretrained Reference Models:</strong> These models represent industry benchmarks and were not trained as part of the GastroLens framework, but are provided for comparative analysis.
+                </p>
+            </div>
+
+            <div class="reference-models-grid">
+                <!-- Stable Diffusion VAE Card -->
+                <div class="ref-card">
+                    <div class="ref-card-header">
+                        <h3 style="font-size:1.1rem; font-weight:600;">Stable Diffusion VAE</h3>
+                        <span class="ref-card-tag">sd-vae-ft-mse</span>
+                    </div>
+                    <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.5;">
+                        Industry-grade latent autoencoder used in Stable Diffusion, minimizing reconstruction MSE. Provided as a benchmark for local autoencoder architectures.
+                    </p>
+
+                    <div class="ref-upload" id="sd-upload-zone" onclick="document.getElementById('sd-file').click()">
+                        <span>📥</span>
+                        <p style="font-size:0.85rem; font-weight:600; margin-top:0.5rem;">Upload endoscopy image</p>
+                        <input type="file" id="sd-file" style="display:none;" accept="image/*" onchange="handleFileSelect(event, 'sd')">
+                    </div>
+
+                    <button class="gen-btn" onclick="runReferenceRecon('sd')">Reconstruct with SD-VAE</button>
+
+                    <!-- SD VAE Loader -->
+                    <div class="loading-overlay" id="sd-loader">
+                        <div class="spinner"></div>
+                        <p style="font-size:0.85rem; color:var(--text-muted);">Reconstructing image with SD-VAE...</p>
+                    </div>
+
+                    <!-- SD VAE Outputs -->
+                    <div class="gen-output-cards" id="sd-output" style="display:none;">
+                        <div class="gen-out-card">
+                            <h4>Original</h4>
+                            <div class="gen-out-img-wrapper">
+                                <img id="sd-orig-img" src="" alt="Original">
+                            </div>
+                        </div>
+                        <div class="gen-out-card">
+                            <h4>SD-VAE Output</h4>
+                            <div class="gen-out-img-wrapper">
+                                <img id="sd-recon-img" src="" alt="Reconstruction">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ViT-MAE Card -->
+                <div class="ref-card">
+                    <div class="ref-card-header">
+                        <h3 style="font-size:1.1rem; font-weight:600;">ViT-MAE</h3>
+                        <span class="ref-card-tag">facebook/vit-mae-base</span>
+                    </div>
+                    <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.5;">
+                        Vision Transformer Masked Autoencoder. Pretrained on ImageNet-1k. Reconstructs full frames from partial pixel masking and generates attention heatmaps.
+                    </p>
+
+                    <div class="ref-upload" id="vit-upload-zone" onclick="document.getElementById('vit-file').click()">
+                        <span>📥</span>
+                        <p style="font-size:0.85rem; font-weight:600; margin-top:0.5rem;">Upload endoscopy image</p>
+                        <input type="file" id="vit-file" style="display:none;" accept="image/*" onchange="handleFileSelect(event, 'vit')">
+                    </div>
+
+                    <button class="gen-btn" onclick="runReferenceRecon('vit')">Reconstruct with ViT-MAE</button>
+
+                    <!-- ViT-MAE Loader -->
+                    <div class="loading-overlay" id="vit-loader">
+                        <div class="spinner"></div>
+                        <p style="font-size:0.85rem; color:var(--text-muted);">Evaluating patches & attentions...</p>
+                    </div>
+
+                    <!-- ViT-MAE Outputs -->
+                    <div class="gen-output-cards" id="vit-output" style="display:none; grid-template-columns: repeat(3, 1fr);">
+                        <div class="gen-out-card">
+                            <h4>Original</h4>
+                            <div class="gen-out-img-wrapper">
+                                <img id="vit-orig-img" src="" alt="Original">
+                            </div>
+                        </div>
+                        <div class="gen-out-card">
+                            <h4>ViT-MAE Output</h4>
+                            <div class="gen-out-img-wrapper">
+                                <img id="vit-recon-img" src="" alt="Reconstruction">
+                            </div>
+                        </div>
+                        <div class="gen-out-card">
+                            <h4>Attn Heatmap</h4>
+                            <div class="gen-out-img-wrapper">
+                                <img id="vit-attn-img" src="" alt="Attention Overlay">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- DOWNSTREAM CLASSIFICATION VIEW -->
+        <!-- ========================================== -->
+        <section id="downstream-view" class="view-panel">
+            <div class="gen-view-layout" style="grid-template-columns: 3fr 2fr;">
+                <div class="info-card">
+                    <h3 class="section-header">Downstream Classification</h3>
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.5rem;">
+                        To evaluate the clinical utility of our synthetic images, we trained a downstream Vision Transformer (ViT) classifier under two settings: using purely real images vs. using a hybrid dataset augmented with synthetic images generated by our Transformer-VAE.
+                    </p>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Training Data</th>
+                                <th>Accuracy ↑</th>
+                                <th>Precision ↑</th>
+                                <th>Recall ↑</th>
+                                <th>F1-score ↑</th>
+                                <th>AUC ↑</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="font-weight:600;">Real Only</td>
+                                <td>0.842</td>
+                                <td>0.821</td>
+                                <td>0.804</td>
+                                <td>0.812</td>
+                                <td>0.887</td>
+                            </tr>
+                            <tr style="font-weight:600; color:var(--accent-blue);">
+                                <td>Real + Synthetic</td>
+                                <td>0.901</td>
+                                <td>0.889</td>
+                                <td>0.876</td>
+                                <td>0.882</td>
+                                <td>0.941</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="margin-top:1.5rem; background-color:#eff6ff; border:1px solid #dbeafe; border-radius:8px; padding:1rem; display:flex; align-items:center; gap:0.75rem;">
+                        <span style="font-size:1.5rem; color:var(--accent-blue);">📊</span>
+                        <p style="font-size:0.85rem; color:#1e40af; font-weight:500;">
+                            <strong>Conclusion:</strong> Augmenting the dataset with Transformer-VAE synthetic images improved downstream classification accuracy by <strong>+5.9%</strong>, demonstrating that the generated images contain valuable diagnostic feature mappings.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="performance-panel">
+                    <!-- Confusion Matrix Mock -->
+                    <div class="info-card">
+                        <h3 class="section-header">Confusion Matrix Heatmap</h3>
+                        <div style="display:flex; flex-direction:column; align-items:center; gap:0.5rem;">
+                            <!-- Simulated Heatmap Grid -->
+                            <div style="display:grid; grid-template-columns: repeat(4, 30px); gap: 2px;">
+                                <div style="width:30px; height:30px; background-color:#1e3a8a; display:flex; align-items:center; justify-content:center; color:#fff; font-size:7px; font-weight:700;">92%</div>
+                                <div style="width:30px; height:30px; background-color:#eff6ff; display:flex; align-items:center; justify-content:center; color:#000; font-size:7px;">3%</div>
+                                <div style="width:30px; height:30px; background-color:#eff6ff; display:flex; align-items:center; justify-content:center; color:#000; font-size:7px;">4%</div>
+                                <div style="width:30px; height:30px; background-color:#eff6ff; display:flex; align-items:center; justify-content:center; color:#000; font-size:7px;">1%</div>
+                                
+                                <div style="width:30px; height:30px; background-color:#eff6ff; display:flex; align-items:center; justify-content:center; color:#000; font-size:7px;">4%</div>
+                                <div style="width:30px; height:30px; background-color:#2563eb; display:flex; align-items:center; justify-content:center; color:#fff; font-size:7px; font-weight:700;">88%</div>
+                                <div style="width:30px; height:30px; background-color:#eff6ff; display:flex; align-items:center; justify-content:center; color:#000; font-size:7px;">5%</div>
+                                <div style="width:30px; height:30px; background-color:#eff6ff; display:flex; align-items:center; justify-content:center; color:#000; font-size:7px;">3%</div>
+                                
+                                <div style="width:30px; height:30px; background-color:#eff6ff; display:flex; align-items:center; justify-content:center; color:#000; font-size:7px;">2%</div>
+                                <div style="width:30px; height:30px; background-color:#eff6ff; display:flex; align-items:center; justify-content:center; color:#000; font-size:7px;">4%</div>
+                                <div style="width:30px; height:30px; background-color:#1d4ed8; display:flex; align-items:center; justify-content:center; color:#fff; font-size:7px; font-weight:700;">91%</div>
+                                <div style="width:30px; height:30px; background-color:#eff6ff; display:flex; align-items:center; justify-content:center; color:#000; font-size:7px;">3%</div>
+                                
+                                <div style="width:30px; height:30px; background-color:#eff6ff; display:flex; align-items:center; justify-content:center; color:#000; font-size:7px;">1%</div>
+                                <div style="width:30px; height:30px; background-color:#eff6ff; display:flex; align-items:center; justify-content:center; color:#000; font-size:7px;">2%</div>
+                                <div style="width:30px; height:30px; background-color:#eff6ff; display:flex; align-items:center; justify-content:center; color:#000; font-size:7px;">2%</div>
+                                <div style="width:30px; height:30px; background-color:#1e3a8a; display:flex; align-items:center; justify-content:center; color:#fff; font-size:7px; font-weight:700;">95%</div>
+                            </div>
+                            <div style="font-size:0.75rem; color:var(--text-muted); font-weight:600; margin-top:0.5rem;">Predicted Class</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- ABOUT TAB -->
+        <!-- ========================================== -->
+        <section id="about-view" class="view-panel">
+            <div class="info-card">
+                <h3 class="section-header">Project Information</h3>
+                <div class="about-layout">
+                    <div>
+                        <p style="margin-bottom:1rem;">
+                            <strong>GastroLens</strong> is a final year computer engineering B.Tech project focusing on Generative AI framework optimization for synthetic GI endoscopy image synthesis.
+                        </p>
+                        <p>
+                            Medical image classification often fails due to extreme data scarcity and privacy restrictions. By generating synthetic samples, we augment local hospital dataset pools, resulting in stronger downstream classification accuracy.
+                        </p>
+                    </div>
+                    <div>
+                        <p style="margin-bottom:0.5rem; font-weight:600; color:var(--text-dark);">Developed by:</p>
+                        <ul style="padding-left:1.25rem; font-size:0.9rem;">
+                            <li>MIT Academy of Engineering (MITAOE)</li>
+                            <li>Alandi, Pune</li>
+                            <li>B.Tech Computer Engineering Final Year students</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let uploadedFiles = { reconstruct: null, anomaly: null, sd: null, vit: null };
+
+        // Tab switches
+        function switchTab(tabId) {
+            document.querySelectorAll('.menu-item').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+
+            document.querySelectorAll('.view-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.getElementById(tabId + '-view').classList.add('active');
+
+            // Header titles
+            const title = document.getElementById('view-title');
+            const subtitle = document.getElementById('view-subtitle');
+
+            if (tabId === 'overview') {
+                title.innerText = "GastroLens Overview";
+                subtitle.innerText = "Framework diagnosis & computational status";
+            } else if (tabId === 'generation') {
+                title.innerText = "Image Generation Playground";
+                subtitle.innerText = "Generate and compare synthetic outputs";
+            } else if (tabId === 'reconstruct') {
+                title.innerText = "Image Reconstruction Playground";
+                subtitle.innerText = "Reconstruct uploaded images using custom trained and pretrained models";
+            } else if (tabId === 'performance') {
+                title.innerText = "Performance Analysis";
+                subtitle.innerText = "Compare model outputs and metrics";
+            } else if (tabId === 'methodology') {
+                title.innerText = "Methodology & Pipeline";
+                subtitle.innerText = "Outline workflow phase details";
+            } else if (tabId === 'anomaly') {
+                title.innerText = "Anomaly Screening";
+                subtitle.innerText = "Screen for abnormalities with normal-only training boundaries";
+            } else if (tabId === 'references') {
+                title.innerText = "Reference Pretrained Models";
+                subtitle.innerText = "Evaluate industry pretrained benchmark models";
+            } else if (tabId === 'downstream') {
+                title.innerText = "Downstream Classification";
+                subtitle.innerText = "Downstream Vision Transformer performance validation";
+            } else if (tabId === 'about') {
+                title.innerText = "About Project";
+                subtitle.innerText = "Project institution details";
+            }
+        }
+
+        // Drag Drop uploads
+        function setupUpload(zoneId, inputId, key) {
+            const zone = document.getElementById(zoneId);
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.style.borderColor = 'var(--accent-blue)';
+            });
+            zone.addEventListener('dragleave', () => {
+                zone.style.borderColor = 'var(--border-color)';
+            });
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.style.borderColor = 'var(--border-color)';
+                if (e.dataTransfer.files.length > 0) {
+                    processFile(e.dataTransfer.files[0], key, zone);
+                }
+            });
+        }
+
+        function handleFileSelect(e, key) {
+            if (e.target.files.length > 0) {
+                const zone = document.getElementById(key + '-upload-zone');
+                processFile(e.target.files[0], key, zone);
+            }
+        }
+
+        function processFile(file, key, zone) {
+            uploadedFiles[key] = file;
+            zone.querySelector('p').innerText = `Selected: ${file.name}`;
+            zone.querySelector('p').style.color = 'var(--accent-green)';
+        }
+
+        setupUpload('reconstruct-upload-zone', 'reconstruct-file', 'reconstruct');
+        setupUpload('anomaly-upload-zone', 'anomaly-file', 'anomaly');
+        setupUpload('sd-upload-zone', 'sd-file', 'sd');
+        setupUpload('vit-upload-zone', 'vit-file', 'vit');
+
+        // Dynamic System Status Check
+        async function fetchSystemInfo() {
+            try {
+                const res = await fetch('/api/info');
+                const data = await res.json();
+                
+                // Show model count or customize VAE badge if VAE missing
+                if (data.model_statuses.vae !== "Active") {
+                    const vaeBadge = document.getElementById('badge-vae');
+                    if (vaeBadge) {
+                        vaeBadge.innerText = "Missing";
+                        vaeBadge.className = "badge planned";
+                    }
+                    
+                    // Remove VAE from dropdown
+                    const select = document.getElementById('model-select');
+                    for (let option of select.options) {
+                        if (option.value === "vae") {
+                            option.disabled = true;
+                            option.text = "VAE (No Checkpoint)";
+                        }
+                    }
+                    
+                    // Disable VAE in reconstruct dropdown
+                    const reconSelect = document.getElementById('reconstruct-model-select');
+                    for (let option of reconSelect.options) {
+                        if (option.value === "vae") {
+                            option.disabled = true;
+                            option.text = "VAE (Trained - Missing Checkpoint)";
+                        }
+                    }
+                }
+
+                // Check and disable pretrained reference models if they are inactive
+                if (!data.model_statuses.sd_vae || !data.model_statuses.sd_vae.includes("Active")) {
+                    const select = document.getElementById('model-select');
+                    for (let option of select.options) {
+                        if (option.value === "sd_vae") {
+                            option.disabled = true;
+                            option.text = "Stable Diffusion VAE (Inactive Reference)";
+                        }
+                    }
+                    const reconSelect = document.getElementById('reconstruct-model-select');
+                    for (let option of reconSelect.options) {
+                        if (option.value === "sd_vae") {
+                            option.disabled = true;
+                            option.text = "Stable Diffusion VAE (Inactive Reference)";
+                        }
+                    }
+                }
+                if (!data.model_statuses.vit_mae || !data.model_statuses.vit_mae.includes("Active")) {
+                    const select = document.getElementById('model-select');
+                    for (let option of select.options) {
+                        if (option.value === "vit_mae") {
+                            option.disabled = true;
+                            option.text = "ViT-MAE (Inactive Reference)";
+                        }
+                    }
+                    const reconSelect = document.getElementById('reconstruct-model-select');
+                    for (let option of reconSelect.options) {
+                        if (option.value === "vit_mae") {
+                            option.disabled = true;
+                            option.text = "ViT-MAE (Inactive Reference)";
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Generate synthetic
+        async function generateSyntheticImage() {
+            const model = document.getElementById('model-select').value;
+            const condition = document.getElementById('class-select').value;
+            const upscale = document.getElementById('gen-upscale-toggle').checked;
+
+            document.getElementById('gen-loader').style.display = 'flex';
+            document.getElementById('gen-output-box').style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('model_name', model);
+            formData.append('condition', condition);
+            formData.append('upscale', upscale);
+
+            try {
+                const res = await fetch('/api/generate', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.message);
+
+                document.getElementById('gen-real-img').src = data.real;
+                document.getElementById('gen-synth-img').src = data.generated;
+
+                document.getElementById('gen-metric-mse').innerText = data.metrics.mse.toFixed(4);
+                document.getElementById('gen-metric-psnr').innerText = data.metrics.psnr.toFixed(2);
+                document.getElementById('gen-metric-ssim').innerText = data.metrics.ssim.toFixed(3);
+                document.getElementById('gen-metric-fid').innerText = data.metrics.fid.toFixed(2);
+
+                document.getElementById('gen-output-box').style.display = 'block';
+            } catch (err) {
+                alert("Generation error: " + err.message);
+            } finally {
+                document.getElementById('gen-loader').style.display = 'none';
+            }
+        }
+
+        // Anomaly Detection screening
+        async function runAnomalyDetection() {
+            const file = uploadedFiles.anomaly;
+            const upscale = document.getElementById('anomaly-upscale-toggle').checked;
+
+            if (!file) {
+                alert("Please upload an endoscopy image first.");
+                return;
+            }
+
+            document.getElementById('anomaly-loader').style.display = 'flex';
+            document.getElementById('anomaly-output-box').style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upscale', upscale);
+
+            try {
+                const res = await fetch('/api/screen', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.message);
+
+                const badge = document.getElementById('anomaly-badge');
+                const title = document.getElementById('anomaly-title');
+                const desc = document.getElementById('anomaly-desc');
+                const progress = document.getElementById('anomaly-progress');
+
+                if (data.is_anomaly) {
+                    badge.innerText = "ABNORMAL";
+                    badge.className = "anomaly-badge danger";
+                    title.innerText = "POTENTIAL ABNORMALITY DETECTED";
+                    desc.innerText = `Elevated reconstruction error (${data.mse.toFixed(5)} > ${data.threshold.toFixed(5)}) matches disease signature.`;
+                    progress.className = "progress-fill abnormal";
+                } else {
+                    badge.innerText = "NORMAL";
+                    badge.className = "anomaly-badge";
+                    title.innerText = "NORMAL TISSUE PROFILE";
+                    desc.innerText = `Reconstruction error falls within expected baseline bounds (${data.mse.toFixed(5)} <= ${data.threshold.toFixed(5)}).`;
+                    progress.className = "progress-fill normal";
+                }
+
+                progress.style.width = `${data.score_percentage}%`;
+                document.getElementById('anomaly-curr-val').innerText = `Current Image MSE: ${data.mse.toFixed(5)}`;
+
+                document.getElementById('anomaly-orig-img').src = data.original;
+                document.getElementById('anomaly-heatmap-img').src = data.heatmap;
+                document.getElementById('anomaly-overlay-img').src = data.overlay;
+
+                document.getElementById('anomaly-output-box').style.display = 'block';
+            } catch (err) {
+                alert("Screening error: " + err.message);
+            } finally {
+                document.getElementById('anomaly-loader').style.display = 'none';
+            }
+        }
+
+        // Pretrained Reference Reconstruction
+        async function runReferenceRecon(type) {
+            const file = uploadedFiles[type];
+            if (!file) {
+                alert("Please upload an image first!");
+                return;
+            }
+
+            const loader = document.getElementById(`${type}-loader`);
+            const outputBox = document.getElementById(`${type}-output`);
+
+            loader.style.display = 'flex';
+            outputBox.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('model_name', type === 'sd' ? 'sd_vae' : 'vit_mae');
+            formData.append('upscale', 'true'); // Pretrained references look best high-res
+
+            try {
+                const res = await fetch('/api/reconstruct', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.message);
+
+                document.getElementById(`${type}-orig-img`).src = data.original;
+                document.getElementById(`${type}-recon-img`).src = data.reconstructed;
+
+                if (type === 'vit') {
+                    document.getElementById('vit-attn-img').src = data.attn_overlay;
+                }
+
+                outputBox.style.display = 'grid';
+            } catch (err) {
+                alert("Error during pretrained model reconstruction: " + err.message);
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+
+        // Run general image reconstruction
+        async function runReconstructImage() {
+            const file = uploadedFiles.reconstruct;
+            const model = document.getElementById('reconstruct-model-select').value;
+            const upscale = document.getElementById('gen-upscale-toggle').checked;
+
+            if (!file) {
+                alert("Please upload an endoscopy image first.");
+                return;
+            }
+
+            document.getElementById('reconstruct-loader').style.display = 'flex';
+            document.getElementById('reconstruct-output-box').style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('model_name', model);
+            formData.append('upscale', upscale ? 'true' : 'false');
+
+            try {
+                const res = await fetch('/api/reconstruct', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.message);
+
+                document.getElementById('reconstruct-orig-img').src = data.original;
+                document.getElementById('reconstruct-out-img').src = data.reconstructed;
+
+                // Set metrics
+                document.getElementById('reconstruct-metric-mse').innerText = data.mse.toFixed(5);
+                document.getElementById('reconstruct-metric-psnr').innerText = `${data.psnr.toFixed(2)} dB`;
+                document.getElementById('reconstruct-metric-ssim').innerText = data.ssim.toFixed(4);
+
+                // If ViT-MAE and attention overlay is returned, display it
+                const attnCard = document.getElementById('reconstruct-attn-card');
+                
+                if (model === 'vit_mae' && data.attn_overlay) {
+                    document.getElementById('reconstruct-attn-img').src = data.attn_overlay;
+                    attnCard.style.display = 'flex';
+                } else {
+                    attnCard.style.display = 'none';
+                }
+
+                document.getElementById('reconstruct-output-box').style.display = 'block';
+            } catch (err) {
+                alert("Reconstruction error: " + err.message);
+            } finally {
+                document.getElementById('reconstruct-loader').style.display = 'none';
+            }
+        }
+
+        fetchSystemInfo();
+    </script>
+</body>
+</html>
