@@ -1,15 +1,30 @@
 """
 GastroGen — Generative AI for Gastrointestinal Health (v2.0)
-Official Hugging Face Gradio Deployment Studio
+Official Hugging Face Gradio Deployment Studio (ZeroGPU Accelerated)
 
 Lead Clinician / Researcher: Devashri
-Framework: PyTorch 2.x • Gradio 4.x/5.x • Kvasir-v2 Medical Endoscopy Benchmark
+Framework: PyTorch 2.x • Gradio 6.x • ZeroGPU • Kvasir-v2 Medical Endoscopy Benchmark
 """
 
 import os
 import io
 import math
 import time
+
+# ZeroGPU initialization: spaces MUST be imported BEFORE torch or any CUDA-related library
+try:
+    import spaces
+except ImportError:
+    class _SpacesMock:
+        @staticmethod
+        def GPU(fn=None, duration=None):
+            if fn is None:
+                def decorator(func):
+                    return func
+                return decorator
+            return fn
+    spaces = _SpacesMock()
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -28,11 +43,11 @@ from model import Autoencoder, VAE, TransformerVAE
 # Startup diagnostic
 print("GastroGen Hugging Face Space started")
 print("PyTorch version:", torch.__version__)
-print("CUDA available:", torch.cuda.is_available())
 
-# Device setup
+# Device strategy: Support local CPU/CUDA development and HF ZeroGPU
+# Models remain on CPU initially; GPU is dynamically allocated inside @spaces.GPU functions
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"[+] GastroGen running on device: {device}")
+print(f"[+] GastroGen default host device: {device}")
 
 # -------------------------------------------------------------
 # 1. Model Initialization
@@ -63,8 +78,9 @@ def load_all_models():
         path = config["path"]
         if os.path.exists(path):
             try:
-                model = config["class_fn"]().to(device)
-                checkpoint = torch.load(path, map_location=device)
+                # Load all models initially into CPU memory for ZeroGPU compatibility
+                model = config["class_fn"]().to("cpu")
+                checkpoint = torch.load(path, map_location="cpu")
                 if isinstance(checkpoint, dict) and "state_dict" in checkpoint:
                     model.load_state_dict(checkpoint["state_dict"])
                 elif isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
@@ -116,10 +132,11 @@ def preprocess_image(pil_img):
         return None, None
     if pil_img.mode != "RGB":
         pil_img = pil_img.convert("RGB")
-    tensor = transform_pipe(pil_img).unsqueeze(0).to(device)
+    tensor = transform_pipe(pil_img).unsqueeze(0)
     orig_np = tensor.squeeze(0).permute(1, 2, 0).cpu().numpy()
     return tensor, orig_np
 
+@spaces.GPU
 def run_autoencoder_inference(input_img):
     if input_img is None:
         return None, "Please upload or select an endoscopy image.", "", ""
@@ -128,6 +145,10 @@ def run_autoencoder_inference(input_img):
     model = loaded_models.get("autoencoder")
     if model is None:
         return None, "Autoencoder model weight checkpoint not loaded.", "", ""
+    
+    infer_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = model.to(infer_device)
+    tensor = tensor.to(infer_device)
     
     start_t = time.time()
     with torch.no_grad():
@@ -150,12 +171,13 @@ def run_autoencoder_inference(input_img):
 | **SSIM Score** | **`{ssim:.4f}`** | $> 0.950$ | 🟢 Optimal High-Fidelity |
 | **PSNR** | **`{psnr:.2f} dB`** | $> 30.0$ dB | 🟢 Low-Noise Signal |
 | **MSE Loss** | **`{mse:.6f}`** | $< 0.0020$ | 🟢 Minimal Variance |
-| **Inference Latency** | **`{latency:.1f} ms`** | Real-time | ⚡ Accelerated |
+| **Inference Latency** | **`{latency:.1f} ms`** | Real-time | ⚡ Accelerated ({infer_device.type.upper()}) |
 """
     # Anomaly status
     normal_model = loaded_models.get("normal_only_autoencoder")
     anomaly_md = ""
     if normal_model:
+        normal_model = normal_model.to(infer_device)
         with torch.no_grad():
             norm_recon = normal_model(tensor).squeeze(0).clamp(0, 1).permute(1, 2, 0).cpu().numpy()
         anomaly_score = float(np.mean((orig_np - norm_recon) ** 2))
@@ -163,9 +185,16 @@ def run_autoencoder_inference(input_img):
         status_color = "🔴 Pathology / Abnormality Detected" if is_pathology else "🟢 Healthy Mucosal Landmark"
         anomaly_md = f"**Abnormality Screening**: {status_color} *(Score: `{anomaly_score:.6f}` | Cutoff: `{ANOMALY_THRESHOLD:.6f}`)*"
 
+    if infer_device.type == "cuda":
+        model.to("cpu")
+        if normal_model:
+            normal_model.to("cpu")
+        torch.cuda.empty_cache()
+
     return recon_pil, metrics_md, anomaly_md
 
 
+@spaces.GPU
 def run_vae_inference(input_img, noise_scale):
     if input_img is None:
         return None, "Please upload or select an endoscopy image."
@@ -174,6 +203,10 @@ def run_vae_inference(input_img, noise_scale):
     model = loaded_models.get("vae")
     if model is None:
         return None, "VAE model weight checkpoint not loaded."
+    
+    infer_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = model.to(infer_device)
+    tensor = tensor.to(infer_device)
     
     start_t = time.time()
     with torch.no_grad():
@@ -200,11 +233,16 @@ def run_vae_inference(input_img, noise_scale):
 | **SSIM Score** | **`{ssim:.4f}`** | Structural texture preservation across latent manifold |
 | **PSNR** | **`{psnr:.2f} dB`** | Peak Signal-to-Noise Ratio |
 | **Sobel Edge MSE** | **`{mse:.6f}`** | Edge variance regularized by Sobel gradient loss |
-| **Latent Sampling Latency** | **`{latency:.1f} ms`** | Reparameterization forward pass |
+| **Latent Sampling Latency** | **`{latency:.1f} ms`** | Reparameterization forward pass ({infer_device.type.upper()}) |
 """
+    if infer_device.type == "cuda":
+        model.to("cpu")
+        torch.cuda.empty_cache()
+
     return recon_pil, metrics_md
 
 
+@spaces.GPU
 def run_vit_inference(input_img, view_mode):
     if input_img is None:
         return None, {}, "Please upload or select an endoscopy image."
@@ -213,6 +251,10 @@ def run_vit_inference(input_img, view_mode):
     model = loaded_models.get("transformer_vae")
     if model is None:
         return None, {}, "Vision Transformer weight checkpoint not loaded."
+    
+    infer_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = model.to(infer_device)
+    tensor = tensor.to(infer_device)
     
     start_t = time.time()
     with torch.no_grad():
@@ -265,10 +307,16 @@ def run_vit_inference(input_img, view_mode):
         out_pil = Image.blend(orig_pil_128, heatmap_pil, alpha=0.45)
     
     top_class = max(prob_dict, key=prob_dict.get)
-    info_md = f"**Primary ViT Diagnosis**: `{top_class}` ({prob_dict[top_class]*100:.1f}%) | Latency: `{latency:.1f} ms`"
+    info_md = f"**Primary ViT Diagnosis**: `{top_class}` ({prob_dict[top_class]*100:.1f}%) | Latency: `{latency:.1f} ms` ({infer_device.type.upper()})"
+    
+    if infer_device.type == "cuda":
+        model.to("cpu")
+        torch.cuda.empty_cache()
+
     return out_pil, prob_dict, info_md
 
 
+@spaces.GPU
 def run_model_comparison(input_img):
     if input_img is None:
         return None, None, None, None, "Please upload or select an endoscopy image."
@@ -280,9 +328,13 @@ def run_model_comparison(input_img):
     vae_model = loaded_models.get("vae")
     vit_model = loaded_models.get("transformer_vae")
     
+    infer_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    tensor_dev = tensor.to(infer_device)
+    
     # 1. Autoencoder
+    ae_model = ae_model.to(infer_device)
     with torch.no_grad():
-        ae_tensor = ae_model(tensor).squeeze(0).clamp(0, 1)
+        ae_tensor = ae_model(tensor_dev).squeeze(0).clamp(0, 1)
     ae_np = ae_tensor.permute(1, 2, 0).cpu().numpy()
     ae_pil = Image.fromarray((ae_np * 255).astype(np.uint8))
     ae_ssim = float(ssim_fn(orig_np, ae_np, channel_axis=2, data_range=1.0))
@@ -290,8 +342,9 @@ def run_model_comparison(input_img):
     ae_mse = float(np.mean((orig_np - ae_np) ** 2))
     
     # 2. VAE
+    vae_model = vae_model.to(infer_device)
     with torch.no_grad():
-        mu, logvar, skips = vae_model.encode(tensor)
+        mu, logvar, skips = vae_model.encode(tensor_dev)
         vae_tensor = vae_model.decoder(mu, skips).squeeze(0).clamp(0, 1)
     vae_np = vae_tensor.permute(1, 2, 0).cpu().numpy()
     vae_pil = Image.fromarray((vae_np * 255).astype(np.uint8))
@@ -300,8 +353,9 @@ def run_model_comparison(input_img):
     vae_mse = float(np.mean((orig_np - vae_np) ** 2))
     
     # 3. ViT
+    vit_model = vit_model.to(infer_device)
     with torch.no_grad():
-        vit_tensor, _, _ = vit_model(tensor)
+        vit_tensor, _, _ = vit_model(tensor_dev)
     vit_np = vit_tensor.squeeze(0).clamp(0, 1).permute(1, 2, 0).cpu().numpy()
     vit_pil = Image.fromarray((vit_np * 255).astype(np.uint8))
     vit_ssim = float(ssim_fn(orig_np, vit_np, channel_axis=2, data_range=1.0))
@@ -312,10 +366,16 @@ def run_model_comparison(input_img):
 ### 🏆 Clinical Multi-Model Benchmark Results
 | Architecture | Latent Space | SSIM (Fidelity) | PSNR | MSE Loss | Device |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Autoencoder v2** | 256-D Bottleneck | **`{ae_ssim:.4f}`** | **`{ae_psnr:.2f} dB`** | **`{ae_mse:.6f}`** | {device.type.upper()} |
-| **Spatial VAE v2** | $8 \\times 32 \\times 32$ Map | **`{vae_ssim:.4f}`** | **`{vae_psnr:.2f} dB`** | **`{vae_mse:.6f}`** | {device.type.upper()} |
-| **Vision Transformer (ViT)** | 196 Patch Tokens | **`{vit_ssim:.4f}`** | **`{vit_psnr:.2f} dB`** | **`{vit_mse:.6f}`** | {device.type.upper()} |
+| **Autoencoder v2** | 256-D Bottleneck | **`{ae_ssim:.4f}`** | **`{ae_psnr:.2f} dB`** | **`{ae_mse:.6f}`** | {infer_device.type.upper()} |
+| **Spatial VAE v2** | $8 \\times 32 \\times 32$ Map | **`{vae_ssim:.4f}`** | **`{vae_psnr:.2f} dB`** | **`{vae_mse:.6f}`** | {infer_device.type.upper()} |
+| **Vision Transformer (ViT)** | 196 Patch Tokens | **`{vit_ssim:.4f}`** | **`{vit_psnr:.2f} dB`** | **`{vit_mse:.6f}`** | {infer_device.type.upper()} |
 """
+    if infer_device.type == "cuda":
+        for m in [ae_model, vae_model, vit_model]:
+            if m:
+                m.to("cpu")
+        torch.cuda.empty_cache()
+
     return orig_pil, ae_pil, vae_pil, vit_pil, table_md
 
 
