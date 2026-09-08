@@ -25,6 +25,11 @@ import gradio as gr
 
 from model import Autoencoder, VAE, TransformerVAE
 
+# Startup diagnostic
+print("GastroGen Hugging Face Space started")
+print("PyTorch version:", torch.__version__)
+print("CUDA available:", torch.cuda.is_available())
+
 # Device setup
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"[+] GastroGen running on device: {device}")
