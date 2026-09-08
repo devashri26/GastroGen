@@ -194,7 +194,7 @@ def run_vae_inference(input_img, noise_scale):
     recon_pil = Image.fromarray((recon_np * 255).astype(np.uint8))
     
     metrics_md = f"""
-### 📊 Spatial Continuous VAE Metrics ($\sigma = {noise_scale:.1f}$)
+### 📊 Spatial Continuous VAE Metrics ($\\sigma = {noise_scale:.1f}$)
 | Metric | Value | Description |
 | :--- | :--- | :--- |
 | **SSIM Score** | **`{ssim:.4f}`** | Structural texture preservation across latent manifold |
@@ -372,14 +372,14 @@ CUSTOM_CSS = """
 }
 """
 
-def create_gradio_app():
-    theme = gr.themes.Soft(
-        primary_hue="purple",
-        secondary_hue="indigo",
-        neutral_hue="slate"
-    )
+theme = gr.themes.Soft(
+    primary_hue="purple",
+    secondary_hue="indigo",
+    neutral_hue="slate"
+)
 
-    with gr.Blocks(theme=theme, css=CUSTOM_CSS, title="GastroGen — Generative AI for Gastrointestinal Health") as demo:
+def create_gradio_app():
+    with gr.Blocks(title="GastroGen — Generative AI for Gastrointestinal Health") as demo:
         # Top Hero Header
         gr.HTML(f"""
         <div class="hero-header">
@@ -501,4 +501,11 @@ demo = create_gradio_app()
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 7860))
-    demo.launch(server_name="0.0.0.0", server_port=port, share=False)
+    demo.launch(
+        server_name="0.0.0.0",
+        server_port=port,
+        share=False,
+        theme=theme,
+        css=CUSTOM_CSS,
+        ssr_mode=False
+    )
