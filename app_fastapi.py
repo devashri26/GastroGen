@@ -545,7 +545,10 @@ if os.path.exists(DIST_DIR):
     comparisons_dir = os.path.join(DIST_DIR, "comparisons")
     if os.path.exists(assets_dir):
         app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
-    if os.path.exists(samples_dir):
+    static_samples = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "class_samples")
+    if os.path.exists(static_samples):
+        app.mount("/samples", StaticFiles(directory=static_samples), name="samples")
+    elif os.path.exists(samples_dir):
         app.mount("/samples", StaticFiles(directory=samples_dir), name="samples")
     if os.path.exists(comparisons_dir):
         app.mount("/comparisons", StaticFiles(directory=comparisons_dir), name="comparisons")
