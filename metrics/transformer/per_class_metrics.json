@@ -1,0 +1,66 @@
+{
+  "polyps": {
+    "SSIM": 0.9983,
+    "PSNR_dB": 37.97,
+    "MSE": 0.000159,
+    "ssim": 0.9983,
+    "psnr_db": 37.97,
+    "mse": 0.000159
+  },
+  "normal-cecum": {
+    "SSIM": 0.9987,
+    "PSNR_dB": 37.05,
+    "MSE": 0.000197,
+    "ssim": 0.9987,
+    "psnr_db": 37.05,
+    "mse": 0.000197
+  },
+  "ulcerative-colitis": {
+    "SSIM": 0.9979,
+    "PSNR_dB": 34.33,
+    "MSE": 0.000369,
+    "ssim": 0.9979,
+    "psnr_db": 34.33,
+    "mse": 0.000369
+  },
+  "esophagitis": {
+    "SSIM": 0.9967,
+    "PSNR_dB": 31.78,
+    "MSE": 0.000663,
+    "ssim": 0.9967,
+    "psnr_db": 31.78,
+    "mse": 0.000663
+  },
+  "normal-pylorus": {
+    "SSIM": 0.9964,
+    "PSNR_dB": 30.97,
+    "MSE": 0.000799,
+    "ssim": 0.9964,
+    "psnr_db": 30.97,
+    "mse": 0.000799
+  },
+  "normal-z-line": {
+    "SSIM": 0.9972,
+    "PSNR_dB": 32.8,
+    "MSE": 0.000525,
+    "ssim": 0.9972,
+    "psnr_db": 32.8,
+    "mse": 0.000525
+  },
+  "dyed-lifted-polyps": {
+    "SSIM": 0.9982,
+    "PSNR_dB": 36.31,
+    "MSE": 0.000234,
+    "ssim": 0.9982,
+    "psnr_db": 36.31,
+    "mse": 0.000234
+  },
+  "dyed-resection-margins": {
+    "SSIM": 0.9978,
+    "PSNR_dB": 35.54,
+    "MSE": 0.000279,
+    "ssim": 0.9978,
+    "psnr_db": 35.54,
+    "mse": 0.000279
+  }
+}
