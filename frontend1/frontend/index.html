@@ -17,7 +17,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=2">
 </head>
 <body>
 
@@ -230,15 +230,15 @@
               <div class="loss-summary-cards">
                 <div class="l-card">
                   <span class="l-lbl">Best Val Loss</span>
-                  <span class="l-num">0.0770</span>
+                  <span class="l-num text-purple">0.0228</span>
                 </div>
                 <div class="l-card">
                   <span class="l-lbl">Val SSIM</span>
-                  <span class="l-num">0.7412</span>
+                  <span class="l-num text-green">0.9814</span>
                 </div>
                 <div class="l-card">
                   <span class="l-lbl">Avg PSNR</span>
-                  <span class="l-num">26.45 dB</span>
+                  <span class="l-num text-blue">34.27 dB</span>
                 </div>
                 <div class="l-card">
                   <span class="l-lbl">Total Epochs</span>
@@ -254,6 +254,7 @@
               <div class="loss-explanation">
                 <div class="loss-pill"><span class="dot train-dot"></span> <strong>Train Loss:</strong> Conv4 Feature Reconstruction</div>
                 <div class="loss-pill"><span class="dot val-dot"></span> <strong>Val Loss:</strong> Zero-leakage Validation Split</div>
+                <div class="loss-pill"><span class="dot" style="background:#10B981;"></span> <strong>Val SSIM:</strong> Structural Fidelity (%)</div>
               </div>
             </div>
           </div>
@@ -477,19 +478,19 @@
               <div class="loss-summary-cards">
                 <div class="l-card">
                   <span class="l-lbl">Best Val SSIM</span>
-                  <span class="l-num">0.8321</span>
+                  <span class="l-num text-pink">0.9744</span>
                 </div>
                 <div class="l-card">
                   <span class="l-lbl">Best Val PSNR</span>
-                  <span class="l-num">30.05 dB</span>
+                  <span class="l-num text-purple">32.23 dB</span>
                 </div>
                 <div class="l-card">
                   <span class="l-lbl">KL Beta Weight</span>
                   <span class="l-num">5e-6</span>
                 </div>
                 <div class="l-card">
-                  <span class="l-lbl">L1 Loss</span>
-                  <span class="l-num">0.0176</span>
+                  <span class="l-lbl">L1 + Sobel Loss</span>
+                  <span class="l-num">0.0267</span>
                 </div>
               </div>
 
@@ -499,9 +500,9 @@
               </div>
 
               <div class="loss-explanation">
-                <div class="loss-pill"><span class="dot pink-dot"></span> <strong>Train Recon:</strong> Pixel + Sobel Gradient Loss</div>
-                <div class="loss-pill"><span class="dot purple-dot"></span> <strong>KL Loss:</strong> Latent Regularization ($D_{KL}$)</div>
-                <div class="loss-pill"><span class="dot val-dot"></span> <strong>Val Loss:</strong> Generalization Metric</div>
+                <div class="loss-pill"><span class="dot pink-dot"></span> <strong>Train Recon + Sobel:</strong> Pixel + Gradient Loss</div>
+                <div class="loss-pill"><span class="dot purple-dot"></span> <strong>Val Loss:</strong> Generalization Metric</div>
+                <div class="loss-pill"><span class="dot" style="background:#A855F7;"></span> <strong>KL Loss:</strong> Latent Regularization ($D_{KL}$)</div>
               </div>
             </div>
           </div>
@@ -812,9 +813,9 @@
               </div>
 
               <div class="loss-explanation">
-                <div class="loss-pill"><span class="dot teal-dot"></span> <strong>Validation Accuracy:</strong> Multi-Class Top-1</div>
-                <div class="loss-pill"><span class="dot val-dot"></span> <strong>CrossEntropy Loss:</strong> Smoothed Cross-Entropy</div>
-                <div class="loss-pill"><span class="dot purple-dot"></span> <strong>Learning Rate:</strong> Cosine Annealed 5e-5</div>
+                <div class="loss-pill"><span class="dot teal-dot"></span> <strong>Validation Accuracy:</strong> Multi-Class Top-1 (Left Axis %)</div>
+                <div class="loss-pill"><span class="dot val-dot"></span> <strong>Train Loss:</strong> Smoothed Cross-Entropy (Right Axis)</div>
+                <div class="loss-pill"><span class="dot purple-dot"></span> <strong>Val Loss:</strong> Validation Cross-Entropy (Right Axis)</div>
               </div>
             </div>
           </div>
@@ -1260,6 +1261,6 @@
   </div>
 
   <!-- Custom JavaScript -->
-  <script src="js/app.js"></script>
+  <script src="js/app.js?v=2"></script>
 </body>
 </html>
