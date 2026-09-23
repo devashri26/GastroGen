@@ -2,6 +2,7 @@
 # Deploys frontend1 as the production medical dashboard
 
 [build]
+  command = "echo 'frontend1 static build ready'"
   publish = "frontend1/frontend"
 
 # Transparent proxy to live Hugging Face ZeroGPU backend

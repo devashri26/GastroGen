@@ -1,0 +1,9 @@
+{
+  "name": "gastrogen-dashboard",
+  "version": "2.0.0",
+  "description": "GastroGen — Generative AI for Gastrointestinal Health (frontend1 production)",
+  "private": true,
+  "scripts": {
+    "build": "echo 'frontend1 static web dashboard ready'"
+  }
+}
