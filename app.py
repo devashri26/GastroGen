@@ -252,6 +252,7 @@ def run_autoencoder_core(input_img):
     
     return orig_pil, recon_pil, ssim, psnr, mse, latency, anomaly_score, is_pathology
 
+@spaces.GPU
 def run_autoencoder_inference(input_img):
     if input_img is None:
         return None, "Please upload or select an endoscopy image.", ""
@@ -313,6 +314,7 @@ def run_vae_core(input_img, noise_scale=1.0):
     
     return orig_pil, recon_pil, ssim, psnr, mse, latency
 
+@spaces.GPU
 def run_vae_inference(input_img, noise_scale):
     if input_img is None:
         return None, "Please upload or select an endoscopy image."
@@ -401,6 +403,7 @@ def run_vit_core(input_img, view_mode="Attention Overlay"):
     
     return orig_pil_128, recon_pil_128, out_pil, prob_dict, top_class, latency
 
+@spaces.GPU
 def run_vit_inference(input_img, view_mode):
     if input_img is None:
         return None, {}, "Please upload or select an endoscopy image."
