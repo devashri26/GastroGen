@@ -1201,16 +1201,8 @@ async def api_anomaly(
 # -------------------------------------------------------------
 demo = create_gradio_app()
 
-# Attach REST API router and CORS middleware to Gradio's internal FastAPI app
-if hasattr(demo, "app") and demo.app is not None:
-    demo.app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-    demo.app.include_router(app.router)
+# Mount Gradio Blocks application onto FastAPI (mounts Gradio UI at "/" and preserves all /api/* routes)
+app = gr.mount_gradio_app(app, demo, path="/")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 7860))
@@ -1226,11 +1218,7 @@ if __name__ == "__main__":
     print("  --> ZeroGPU Inference Functions: @spaces.GPU Active")
     print("=" * 65)
 
-    demo.launch(
-        server_name="0.0.0.0",
-        server_port=port,
-        theme=theme,
-        css=CUSTOM_CSS
-    )
+    uvicorn.run(app, host="0.0.0.0", port=port)
+
 
 
