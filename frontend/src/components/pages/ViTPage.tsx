@@ -378,7 +378,7 @@ export const ViTPage: React.FC = () => {
                   </div>
 
                   <div className="space-y-2.5">
-                    {activeClassification.probabilities.map((prob) => {
+                    {activeClassification.probabilities.map((prob: any) => {
                       const isTop = prob.percentage > 50 || prob.label === activeClassification.topClass;
                       return (
                         <div key={prob.label} className="space-y-1">

@@ -36,11 +36,13 @@ wheels/
 *.swo
 
 # Large Datasets & Zip Archives (Keep git repository clean)
-data_dir/
-data/
+/data_dir/
+/data/
 *.zip
 metrics*.zip
 models.zip
+!frontend/src/data/
+!frontend/src/data/**
 
 # Large Reference Benchmark Checkpoints (>100MB exceeds GitHub limits)
 *.safetensors

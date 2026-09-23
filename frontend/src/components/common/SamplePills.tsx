@@ -20,8 +20,8 @@ export const SamplePills: React.FC<SamplePillsProps> = ({
         </span>
       )}
       <div className="flex flex-wrap gap-2">
-        {SAMPLE_KEYS.map((key) => {
-          const sample = SAMPLES_CATALOG[key];
+        {SAMPLE_KEYS.map((key: string) => {
+          const sample = (SAMPLES_CATALOG as Record<string, any>)[key];
           const isSelected = selectedSampleId === key;
           return (
             <button

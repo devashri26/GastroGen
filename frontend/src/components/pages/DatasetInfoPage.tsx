@@ -81,12 +81,13 @@ export const DatasetInfoPage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          {DATASET_CLASSES.map((cls) => {
-            const categoryBadgeStyle = {
+          {(DATASET_CLASSES as any[]).map((cls) => {
+            const badgeMap: Record<string, string> = {
               Pathological: 'bg-rose-50 text-rose-700 border-rose-200/70',
               Therapeutic: 'bg-teal-50 text-teal-700 border-teal-200/70',
               Anatomical: 'bg-blue-50 text-blue-700 border-blue-200/70',
-            }[cls.category];
+            };
+            const categoryBadgeStyle = badgeMap[cls.category] || 'bg-slate-50 text-slate-700 border-slate-200/70';
 
             return (
               <div 
