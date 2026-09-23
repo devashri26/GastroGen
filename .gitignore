@@ -60,7 +60,11 @@ metrics/**/fid_fake/**
 # Logs & Environment
 *.log
 .env
-.env.local
+.env.*
+!.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
 
 # Allow built frontend distribution for zero-setup deployment
 !frontend/dist/

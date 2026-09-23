@@ -40,8 +40,30 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import gradio as gr
+import base64
+from typing import Optional, Dict, Any
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
 
 from model import Autoencoder, VAE, TransformerVAE
+
+# Initialize FastAPI application
+app = FastAPI(
+    title="GastroGen — Generative AI for Gastrointestinal Health",
+    description="ZeroGPU Accelerated REST API & Clinical Benchmark Studio",
+    version="2.0.0"
+)
+
+# Enable CORS for frontend applications (Step 10)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Startup diagnostic (CPU-only startup; strictly NO CUDA initialization here)
 print("=" * 65)
@@ -142,17 +164,56 @@ def preprocess_image(pil_img):
     return tensor, orig_np
 
 # -------------------------------------------------------------
-# 4. ZeroGPU Inference Functions (@spaces.GPU Decorated)
+# 4. Utilities & ZeroGPU Inference Functions (@spaces.GPU)
 # -------------------------------------------------------------
+def pil_to_base64(pil_img: Image.Image, format: str = "PNG") -> str:
+    buffered = io.BytesIO()
+    pil_img.save(buffered, format=format)
+    img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    return f"data:image/{format.lower()};base64,{img_str}"
+
+MAX_FILE_SIZE = 15 * 1024 * 1024  # 15 MB
+
+async def validate_image_upload(file: UploadFile) -> Image.Image:
+    if not file or not file.filename:
+        raise HTTPException(status_code=400, detail="No image file uploaded.")
+    
+    contents = await file.read()
+    if len(contents) == 0:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=400, detail=f"File exceeds maximum size limit of {MAX_FILE_SIZE // (1024*1024)}MB.")
+    
+    try:
+        pil_img = Image.open(io.BytesIO(contents))
+        pil_img.verify()
+        pil_img = Image.open(io.BytesIO(contents))
+        if pil_img.mode != "RGB":
+            pil_img = pil_img.convert("RGB")
+        return pil_img
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid or corrupted image file: {str(e)}")
+
+CONDITION_SEEDS = {
+    "dyed-lifted-polyps": 100,
+    "dyed-resection-margins": 101,
+    "esophagitis": 102,
+    "normal-cecum": 103,
+    "normal-pylorus": 104,
+    "normal-z-line": 105,
+    "polyps": 106,
+    "ulcerative-colitis": 107
+}
+
 @spaces.GPU
-def run_autoencoder_inference(input_img):
+def run_autoencoder_core(input_img):
     if input_img is None:
-        return None, "Please upload or select an endoscopy image.", ""
+        raise ValueError("Please provide an endoscopy image.")
     
     tensor, orig_np = preprocess_image(input_img)
     model = loaded_models.get("autoencoder")
     if model is None:
-        return None, "Autoencoder model weight checkpoint not loaded.", ""
+        raise RuntimeError("Autoencoder model weight checkpoint not loaded.")
     
     infer_device = get_device()
     model = model.to(infer_device)
@@ -170,8 +231,36 @@ def run_autoencoder_inference(input_img):
     psnr = float(psnr_fn(orig_np, recon_np, data_range=1.0))
     ssim = float(ssim_fn(orig_np, recon_np, channel_axis=2, data_range=1.0))
     
+    orig_pil = Image.fromarray((orig_np * 255).astype(np.uint8))
     recon_pil = Image.fromarray((recon_np * 255).astype(np.uint8))
     
+    normal_model = loaded_models.get("normal_only_autoencoder")
+    anomaly_score = 0.0
+    is_pathology = False
+    if normal_model:
+        normal_model = normal_model.to(infer_device)
+        with torch.inference_mode():
+            norm_recon = normal_model(tensor).squeeze(0).clamp(0, 1).detach().cpu().permute(1, 2, 0).numpy()
+        anomaly_score = float(np.mean((orig_np - norm_recon) ** 2))
+        is_pathology = anomaly_score > ANOMALY_THRESHOLD
+    
+    if infer_device.type == "cuda":
+        model.to("cpu")
+        if normal_model:
+            normal_model.to("cpu")
+        torch.cuda.empty_cache()
+    
+    return orig_pil, recon_pil, ssim, psnr, mse, latency, anomaly_score, is_pathology
+
+def run_autoencoder_inference(input_img):
+    if input_img is None:
+        return None, "Please upload or select an endoscopy image.", ""
+    try:
+        orig_pil, recon_pil, ssim, psnr, mse, latency, anomaly_score, is_pathology = run_autoencoder_core(input_img)
+    except Exception as e:
+        return None, f"Inference Error: {str(e)}", ""
+    
+    infer_device_name = "CUDA" if torch.cuda.is_available() else "CPU"
     metrics_md = f"""
 ### 📊 Ground-Truth Clinical Reconstruction Metrics
 | Metric | Value | Reference Standard | Clinical Status |
@@ -179,39 +268,21 @@ def run_autoencoder_inference(input_img):
 | **SSIM Score** | **`{ssim:.4f}`** | $> 0.950$ | 🟢 Optimal High-Fidelity |
 | **PSNR** | **`{psnr:.2f} dB`** | $> 30.0$ dB | 🟢 Low-Noise Signal |
 | **MSE Loss** | **`{mse:.6f}`** | $< 0.0020$ | 🟢 Minimal Variance |
-| **Inference Latency** | **`{latency:.1f} ms`** | Real-time | ⚡ Accelerated ({infer_device.type.upper()}) |
+| **Inference Latency** | **`{latency:.1f} ms`** | Real-time | ⚡ Accelerated ({infer_device_name}) |
 """
-    # Anomaly screening via normal-only benchmark Autoencoder
-    normal_model = loaded_models.get("normal_only_autoencoder")
-    anomaly_md = ""
-    if normal_model:
-        normal_model = normal_model.to(infer_device)
-        with torch.inference_mode():
-            norm_recon = normal_model(tensor).squeeze(0).clamp(0, 1).detach().cpu().permute(1, 2, 0).numpy()
-        anomaly_score = float(np.mean((orig_np - norm_recon) ** 2))
-        is_pathology = anomaly_score > ANOMALY_THRESHOLD
-        status_color = "🔴 Pathology / Abnormality Detected" if is_pathology else "🟢 Healthy Mucosal Landmark"
-        anomaly_md = f"**Abnormality Screening**: {status_color} *(Score: `{anomaly_score:.6f}` | Cutoff: `{ANOMALY_THRESHOLD:.6f}`)*"
-
-    # Reset models to CPU between requests to preserve dynamic ZeroGPU resources
-    if infer_device.type == "cuda":
-        model.to("cpu")
-        if normal_model:
-            normal_model.to("cpu")
-        torch.cuda.empty_cache()
-
+    status_color = "🔴 Pathology / Abnormality Detected" if is_pathology else "🟢 Healthy Mucosal Landmark"
+    anomaly_md = f"**Abnormality Screening**: {status_color} *(Score: `{anomaly_score:.6f}` | Cutoff: `{ANOMALY_THRESHOLD:.6f}`)*"
     return recon_pil, metrics_md, anomaly_md
 
-
 @spaces.GPU
-def run_vae_inference(input_img, noise_scale):
+def run_vae_core(input_img, noise_scale=1.0):
     if input_img is None:
-        return None, "Please upload or select an endoscopy image."
+        raise ValueError("Please provide an endoscopy image.")
     
     tensor, orig_np = preprocess_image(input_img)
     model = loaded_models.get("vae")
     if model is None:
-        return None, "VAE model weight checkpoint not loaded."
+        raise RuntimeError("VAE model weight checkpoint not loaded.")
     
     infer_device = get_device()
     model = model.to(infer_device)
@@ -233,8 +304,24 @@ def run_vae_inference(input_img, noise_scale):
     psnr = float(psnr_fn(orig_np, recon_np, data_range=1.0))
     ssim = float(ssim_fn(orig_np, recon_np, channel_axis=2, data_range=1.0))
     
+    orig_pil = Image.fromarray((orig_np * 255).astype(np.uint8))
     recon_pil = Image.fromarray((recon_np * 255).astype(np.uint8))
     
+    if infer_device.type == "cuda":
+        model.to("cpu")
+        torch.cuda.empty_cache()
+    
+    return orig_pil, recon_pil, ssim, psnr, mse, latency
+
+def run_vae_inference(input_img, noise_scale):
+    if input_img is None:
+        return None, "Please upload or select an endoscopy image."
+    try:
+        orig_pil, recon_pil, ssim, psnr, mse, latency = run_vae_core(input_img, noise_scale)
+    except Exception as e:
+        return None, f"VAE Inference Error: {str(e)}"
+    
+    infer_device_name = "CUDA" if torch.cuda.is_available() else "CPU"
     metrics_md = f"""
 ### 📊 Spatial Continuous VAE Metrics ($\\sigma = {noise_scale:.1f}$)
 | Metric | Value | Description |
@@ -242,24 +329,19 @@ def run_vae_inference(input_img, noise_scale):
 | **SSIM Score** | **`{ssim:.4f}`** | Structural texture preservation across latent manifold |
 | **PSNR** | **`{psnr:.2f} dB`** | Peak Signal-to-Noise Ratio |
 | **Sobel Edge MSE** | **`{mse:.6f}`** | Edge variance regularized by Sobel gradient loss |
-| **Latent Sampling Latency** | **`{latency:.1f} ms`** | Reparameterization forward pass ({infer_device.type.upper()}) |
+| **Latent Sampling Latency** | **`{latency:.1f} ms`** | Reparameterization forward pass ({infer_device_name}) |
 """
-    if infer_device.type == "cuda":
-        model.to("cpu")
-        torch.cuda.empty_cache()
-
     return recon_pil, metrics_md
 
-
 @spaces.GPU
-def run_vit_inference(input_img, view_mode):
+def run_vit_core(input_img, view_mode="Attention Overlay"):
     if input_img is None:
-        return None, {}, "Please upload or select an endoscopy image."
+        raise ValueError("Please provide an endoscopy image.")
     
     tensor, orig_np = preprocess_image(input_img)
     model = loaded_models.get("transformer_vae")
     if model is None:
-        return None, {}, "Vision Transformer weight checkpoint not loaded."
+        raise RuntimeError("Vision Transformer weight checkpoint not loaded.")
     
     infer_device = get_device()
     model = model.to(infer_device)
@@ -312,13 +394,92 @@ def run_vit_inference(input_img, view_mode):
         out_pil = Image.blend(orig_pil_128, heatmap_pil, alpha=0.45)
     
     top_class = max(prob_dict, key=prob_dict.get)
-    info_md = f"**Primary ViT Diagnosis**: `{top_class}` ({prob_dict[top_class]*100:.1f}%) | Latency: `{latency:.1f} ms` ({infer_device.type.upper()})"
     
     if infer_device.type == "cuda":
         model.to("cpu")
         torch.cuda.empty_cache()
+    
+    return orig_pil_128, recon_pil_128, out_pil, prob_dict, top_class, latency
 
+def run_vit_inference(input_img, view_mode):
+    if input_img is None:
+        return None, {}, "Please upload or select an endoscopy image."
+    try:
+        orig_pil, recon_pil, out_pil, prob_dict, top_class, latency = run_vit_core(input_img, view_mode)
+    except Exception as e:
+        return None, {}, f"ViT Inference Error: {str(e)}"
+    
+    infer_device_name = "CUDA" if torch.cuda.is_available() else "CPU"
+    info_md = f"**Primary ViT Diagnosis**: `{top_class}` ({prob_dict[top_class]*100:.1f}%) | Latency: `{latency:.1f} ms` ({infer_device_name})"
     return out_pil, prob_dict, info_md
+
+@spaces.GPU
+def run_vae_generate(seed=None, noise_scale=1.0):
+    model = loaded_models.get("vae")
+    if model is None:
+        raise RuntimeError("Spatial VAE model checkpoint not loaded.")
+    
+    if seed is not None:
+        torch.manual_seed(int(seed))
+        
+    z = torch.randn(1, 128) * float(noise_scale)
+    
+    infer_device = get_device()
+    model = model.to(infer_device)
+    z = z.to(infer_device)
+    
+    with torch.inference_mode():
+        recon_tensor = model.decoder(z)
+        
+    recon_tensor = recon_tensor.squeeze(0).clamp(0, 1).detach().cpu()
+    recon_np = recon_tensor.permute(1, 2, 0).numpy()
+    gen_pil = Image.fromarray((recon_np * 255).astype(np.uint8))
+    
+    if infer_device.type == "cuda":
+        model.to("cpu")
+        torch.cuda.empty_cache()
+        
+    return gen_pil
+
+@spaces.GPU
+def run_anomaly_core(input_img):
+    if input_img is None:
+        raise ValueError("Please provide an endoscopy image.")
+    tensor, orig_np = preprocess_image(input_img)
+    model = loaded_models.get("normal_only_autoencoder")
+    if model is None:
+        raise RuntimeError("Normal-only Autoencoder checkpoint not loaded.")
+        
+    infer_device = get_device()
+    model = model.to(infer_device)
+    tensor = tensor.to(infer_device)
+    
+    with torch.inference_mode():
+        norm_tensor = model(tensor)
+        
+    norm_tensor = norm_tensor.squeeze(0).clamp(0, 1).detach().cpu()
+    norm_recon = norm_tensor.permute(1, 2, 0).numpy()
+    
+    error_map = np.mean((orig_np - norm_recon) ** 2, axis=2)
+    mse = float(np.mean(error_map))
+    is_anomaly = mse > ANOMALY_THRESHOLD
+    
+    max_val = error_map.max()
+    norm_error = error_map / (max_val if max_val > 0 else 1.0)
+    cmap = plt.get_cmap('jet')
+    heatmap_rgba = cmap(norm_error)
+    heatmap_rgb = (heatmap_rgba[:, :, :3] * 255).astype(np.uint8)
+    heatmap_pil = Image.fromarray(heatmap_rgb)
+    
+    orig_pil = Image.fromarray((orig_np * 255).astype(np.uint8))
+    norm_recon_pil = Image.fromarray((norm_recon * 255).astype(np.uint8))
+    overlay_pil = Image.blend(orig_pil, heatmap_pil, alpha=0.5)
+    
+    if infer_device.type == "cuda":
+        model.to("cpu")
+        torch.cuda.empty_cache()
+        
+    return orig_pil, norm_recon_pil, heatmap_pil, overlay_pil, mse, is_anomaly
 
 
 @spaces.GPU
@@ -563,18 +724,177 @@ def create_gradio_app():
 
     return demo
 
+# -------------------------------------------------------------
+# 6. REST API Endpoints & FastAPI Error Handlers (Steps 3 - 12)
+# -------------------------------------------------------------
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"success": False, "error": exc.detail}
+    )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    print(f"[-] Unhandled API Error: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content={"success": False, "error": "Internal server error during neural inference."}
+    )
+
+@app.get("/health")
+@app.get("/api/health")
+def health_check():
+    """Step 4: Fast CPU-only health probe"""
+    zerogpu_active = bool(os.environ.get("SPACES_ZERO_GPU") or hasattr(spaces, "GPU"))
+    return {
+        "status": "healthy",
+        "service": "GastroGen",
+        "zerogpu": zerogpu_active,
+        "models": {
+            "autoencoder": "autoencoder" in loaded_models,
+            "vae": "vae" in loaded_models,
+            "transformer": "transformer_vae" in loaded_models,
+            "normal_only_autoencoder": "normal_only_autoencoder" in loaded_models
+        }
+    }
+
+@app.post("/api/reconstruct")
+async def api_reconstruct(
+    file: UploadFile = File(...),
+    model: Optional[str] = Form(None),
+    model_name: Optional[str] = Form(None)
+):
+    """Step 5: High-fidelity clinical reconstruction with real SSIM/PSNR/MSE"""
+    pil_img = await validate_image_upload(file)
+    selected_model = (model or model_name or "autoencoder").lower()
+    
+    if selected_model in ["vae", "spatial_vae"]:
+        orig_pil, recon_pil, ssim, psnr, mse, latency = run_vae_core(pil_img, noise_scale=1.0)
+        chosen_name = "vae"
+    elif selected_model in ["transformer_vae", "vit"]:
+        orig_pil_128, recon_pil_128, out_pil, prob_dict, top_class, latency = run_vit_core(pil_img, view_mode="Reconstruction")
+        orig_pil = orig_pil_128
+        recon_pil = recon_pil_128
+        orig_np = np.array(orig_pil) / 255.0
+        recon_np = np.array(recon_pil) / 255.0
+        mse = float(np.mean((orig_np - recon_np) ** 2))
+        psnr = float(psnr_fn(orig_np, recon_np, data_range=1.0))
+        ssim = float(ssim_fn(orig_np, recon_np, channel_axis=2, data_range=1.0))
+        chosen_name = "transformer_vae"
+    else:
+        orig_pil, recon_pil, ssim, psnr, mse, latency, _, _ = run_autoencoder_core(pil_img)
+        chosen_name = "autoencoder"
+    
+    orig_b64 = pil_to_base64(orig_pil)
+    recon_b64 = pil_to_base64(recon_pil)
+    
+    return {
+        "success": True,
+        "model": chosen_name,
+        "reconstruction": recon_b64,
+        "reconstructed": recon_b64,
+        "original": orig_b64,
+        "metrics": {
+            "ssim": round(ssim, 4),
+            "psnr": round(psnr, 2),
+            "mse": round(mse, 6),
+            "latency": round(latency, 1)
+        },
+        "ssim": round(ssim, 4),
+        "psnr": round(psnr, 2),
+        "mse": round(mse, 6),
+        "latency": round(latency, 1)
+    }
+
+@app.post("/api/classify")
+async def api_classify(file: UploadFile = File(...)):
+    """Step 6: Vision Transformer 8-Class Kvasir-v2 diagnosis and attention overlay"""
+    pil_img = await validate_image_upload(file)
+    orig_pil, recon_pil, out_pil, prob_dict, top_class, latency = run_vit_core(pil_img, view_mode="Attention Overlay")
+    confidence = float(prob_dict.get(top_class, 0.0))
+    overlay_b64 = pil_to_base64(out_pil)
+    
+    return {
+        "success": True,
+        "predicted_class": top_class,
+        "confidence": round(confidence, 4),
+        "probabilities": {k: round(v, 4) for k, v in prob_dict.items()},
+        "attention_overlay": overlay_b64,
+        "latency": round(latency, 1)
+    }
+
+@app.post("/api/generate")
+async def api_generate(
+    model: Optional[str] = Form("spatial_vae"),
+    model_name: Optional[str] = Form(None),
+    seed: Optional[int] = Form(None),
+    noise_scale: Optional[float] = Form(1.0),
+    condition: Optional[str] = Form(None)
+):
+    """Step 7: Spatial VAE synthetic image generation"""
+    actual_seed = seed
+    if actual_seed is None and condition:
+        actual_seed = CONDITION_SEEDS.get(condition, None)
+    
+    gen_pil = run_vae_generate(seed=actual_seed, noise_scale=noise_scale or 1.0)
+    gen_b64 = pil_to_base64(gen_pil)
+    
+    return {
+        "success": True,
+        "model": "spatial_vae",
+        "image": gen_b64
+    }
+
+@app.post("/api/anomaly")
+async def api_anomaly(file: UploadFile = File(...)):
+    """Step 8: Normal-only Autoencoder anomaly detection"""
+    pil_img = await validate_image_upload(file)
+    orig_pil, norm_recon_pil, heatmap_pil, overlay_pil, mse, is_anomaly = run_anomaly_core(pil_img)
+    recon_b64 = pil_to_base64(norm_recon_pil)
+    heatmap_b64 = pil_to_base64(heatmap_pil)
+    overlay_b64 = pil_to_base64(overlay_pil)
+    
+    return {
+        "success": True,
+        "anomaly_score": round(mse, 6),
+        "threshold": ANOMALY_THRESHOLD,
+        "is_anomaly": bool(is_anomaly),
+        "reconstruction": recon_b64,
+        "heatmap": heatmap_b64,
+        "overlay": overlay_b64
+    }
+
+# -------------------------------------------------------------
+# 7. Mount Gradio onto FastAPI & Production Launch (Steps 17 - 19)
+# -------------------------------------------------------------
 demo = create_gradio_app()
+app = gr.mount_gradio_app(app, demo, path="/")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 7860))
-    print("=" * 65)
-    print(f"  [OK] GastroGen ZeroGPU Deployment Starting on Port {port}")
-    print(f"  --> Serving Gradio Interface on: http://0.0.0.0:{port}")
-    print("  --> ZeroGPU Inference Functions: @spaces.GPU Active")
-    print("=" * 65)
-    demo.launch(
-        server_name="0.0.0.0",
-        server_port=port,
-        theme=theme,
-        css=CUSTOM_CSS
-    )
+    zerogpu_status = "enabled" if (os.environ.get("SPACES_ZERO_GPU") or hasattr(spaces, "GPU")) else "available"
+    ae_status = "loaded" if "autoencoder" in loaded_models else "missing"
+    vae_status = "loaded" if "vae" in loaded_models else "missing"
+    trans_status = "loaded" if "transformer_vae" in loaded_models else "missing"
+    norm_status = "loaded" if "normal_only_autoencoder" in loaded_models else "missing"
+
+    print("=" * 50)
+    print("GastroGen Backend Starting")
+    print("=" * 50)
+    print(f"PyTorch version: {torch.__version__}")
+    print(f"ZeroGPU: {zerogpu_status}")
+    print("Models:")
+    print(f"  Autoencoder: {ae_status}")
+    print(f"  Spatial VAE: {vae_status}")
+    print(f"  Transformer: {trans_status}")
+    print(f"  Normal-only AE: {norm_status}")
+    print("API:")
+    print("  GET  /health")
+    print("  POST /api/reconstruct")
+    print("  POST /api/classify")
+    print("  POST /api/generate")
+    print("  POST /api/anomaly")
+    print("=" * 50)
+
+    uvicorn.run(app, host="0.0.0.0", port=port)

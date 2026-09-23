@@ -13,7 +13,7 @@ import { Dropzone } from '../common/Dropzone';
 import { SamplePills } from '../common/SamplePills';
 import { SAMPLES_CATALOG } from '../../data/mockData';
 import { ViTViewMode } from '../../types';
-import { runReconstruction } from '../../services/api';
+import { runReconstruction, classifyImage } from '../../services/api';
 
 export const ViTPage: React.FC = () => {
   const [selectedSampleId, setSelectedSampleId] = useState('normal-pylorus');
@@ -24,24 +24,69 @@ export const ViTPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViTViewMode>('overlay');
   const [isInferring, setIsInferring] = useState(false);
   const [inferenceLatency, setInferenceLatency] = useState(1017.3);
+  const [liveClassification, setLiveClassification] = useState<{
+    topClass: string;
+    confidence: number;
+    probabilities: { label: string; percentage: number }[];
+  } | null>(null);
 
   const sample = SAMPLES_CATALOG[selectedSampleId] || SAMPLES_CATALOG['normal-pylorus'];
-  const classification = sample.classification;
 
   // Function to execute real backend reconstruction and attention pass
   const executeInference = async (fileOrUrl: File | string, label: string) => {
     setIsInferring(true);
     try {
-      const result = await runReconstruction(fileOrUrl, 'transformer_vae');
-      setInputImage(result.original);
-      setReconImage(result.reconstructed);
-      if (result.attn_overlay) {
-        setAttnOverlay(result.attn_overlay);
+      // 1. Run live classification via ViT
+      const classPromise = classifyImage(fileOrUrl).catch((err) => {
+        console.warn('Live ViT classification fallback:', err);
+        return null;
+      });
+
+      // 2. Run reconstruction via Transformer-VAE
+      const reconPromise = runReconstruction(fileOrUrl, 'transformer_vae').catch((err) => {
+        console.warn('Backend ViT reconstruction fallback:', err);
+        return null;
+      });
+
+      const [classRes, reconRes] = await Promise.all([classPromise, reconPromise]);
+
+      if (classRes && classRes.success) {
+        const probs = Object.entries(classRes.probabilities)
+          .map(([lbl, val]) => ({
+            label: lbl,
+            percentage: Number((val * 100).toFixed(1)),
+          }))
+          .sort((a, b) => b.percentage - a.percentage);
+
+        setLiveClassification({
+          topClass: classRes.predicted_class,
+          confidence: Number((classRes.confidence * 100).toFixed(1)),
+          probabilities: probs,
+        });
+        setUploadLabel(classRes.predicted_class);
+        if (classRes.attention_overlay) {
+          setAttnOverlay(classRes.attention_overlay);
+        }
+        if (classRes.latency) {
+          setInferenceLatency(classRes.latency);
+        }
+      } else {
+        setUploadLabel(label);
       }
-      setInferenceLatency(result.latency);
-      setUploadLabel(label);
+
+      if (reconRes) {
+        setInputImage(reconRes.original);
+        setReconImage(reconRes.reconstructed);
+        if (reconRes.attn_overlay && !classRes?.attention_overlay) {
+          setAttnOverlay(reconRes.attn_overlay);
+        }
+        setInferenceLatency(reconRes.latency);
+      } else if (typeof fileOrUrl === 'string') {
+        setInputImage(fileOrUrl);
+        setReconImage(fileOrUrl);
+      }
     } catch (err) {
-      console.warn('Backend ViT inference fallback:', err);
+      console.warn('Backend ViT inference error:', err);
       if (typeof fileOrUrl === 'string') {
         setInputImage(fileOrUrl);
         setReconImage(fileOrUrl);
@@ -269,89 +314,100 @@ export const ViTPage: React.FC = () => {
 
         {/* RIGHT CARD: Predicted Diagnostic Finding & Probability Distribution */}
         <div className="xl:col-span-5 space-y-6">
-          {/* Prominent Predicted Finding Card */}
-          <div className="pro-card p-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-36 h-36 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
-            
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                ViT Classification Finding
-              </span>
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center gap-1.5 shadow-2xs">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Verified Diagnostic</span>
-              </span>
-            </div>
+          {(() => {
+            const activeClassification = liveClassification || {
+              topClass: sample.name,
+              confidence: sample.classification.confidence,
+              probabilities: sample.classification.probabilities,
+            };
+            return (
+              <>
+                {/* Prominent Predicted Finding Card */}
+                <div className="pro-card p-6 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-36 h-36 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
+                  
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      ViT Classification Finding
+                    </span>
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center gap-1.5 shadow-2xs">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Verified Diagnostic</span>
+                    </span>
+                  </div>
 
-            <div className="space-y-1">
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-                {uploadLabel}
-              </h2>
-              <p className="text-xs text-slate-500 font-medium">
-                Predicted by GastroGen ViT Attention Rollout Classifier
-              </p>
-            </div>
+                  <div className="space-y-1">
+                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                      {uploadLabel}
+                    </h2>
+                    <p className="text-xs text-slate-500 font-medium">
+                      Predicted by GastroGen ViT Attention Rollout Classifier
+                    </p>
+                  </div>
 
-            <div className="mt-5 p-4 rounded-xl bg-gradient-to-br from-teal-50 via-white to-cyan-50/70 border border-teal-200/80 flex items-center justify-between shadow-2xs">
-              <div>
-                <span className="text-[11px] font-bold text-teal-800 uppercase tracking-wide">
-                  Model Confidence
-                </span>
-                <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-cyan-700 tracking-tight mt-0.5 font-mono">
-                  {classification.confidence}%
-                </div>
-              </div>
-              <div className="text-right">
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
-                  Receptive Heads
-                </span>
-                <div className="text-sm font-bold text-slate-800 font-mono mt-1">
-                  12 Heads × 64-D
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 8-Class Softmax Probability Breakdown */}
-          <div className="pro-card p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-teal-100 text-teal-600 flex items-center justify-center">
-                  <Brain className="w-3.5 h-3.5" />
-                </div>
-                <span>8-Class Softmax Probability Breakdown</span>
-              </h3>
-              <span className="text-[11px] font-mono text-slate-400 font-semibold">Σ p(c) = 1.0</span>
-            </div>
-
-            <div className="space-y-2.5">
-              {classification.probabilities.map((prob) => {
-                const isTop = prob.percentage > 50;
-                return (
-                  <div key={prob.label} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className={`font-medium ${isTop ? 'text-teal-900 font-extrabold' : 'text-slate-600'}`}>
-                        {prob.label}
+                  <div className="mt-5 p-4 rounded-xl bg-gradient-to-br from-teal-50 via-white to-cyan-50/70 border border-teal-200/80 flex items-center justify-between shadow-2xs">
+                    <div>
+                      <span className="text-[11px] font-bold text-teal-800 uppercase tracking-wide">
+                        Model Confidence
                       </span>
-                      <span className={`font-mono text-[11px] ${isTop ? 'text-teal-700 font-black' : 'text-slate-500'}`}>
-                        {prob.percentage}%
-                      </span>
+                      <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-cyan-700 tracking-tight mt-0.5 font-mono">
+                        {activeClassification.confidence}%
+                      </div>
                     </div>
-                    <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-                      <div 
-                        className={`h-full rounded-full transition-all duration-500 ${
-                          isTop 
-                            ? 'bg-gradient-to-r from-teal-500 via-cyan-500 to-emerald-500 shadow-sm shadow-teal-500/30' 
-                            : 'bg-slate-300'
-                        }`}
-                        style={{ width: `${prob.percentage}%` }}
-                      />
+                    <div className="text-right">
+                      <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
+                        Receptive Heads
+                      </span>
+                      <div className="text-sm font-bold text-slate-800 font-mono mt-1">
+                        12 Heads × 64-D
+                      </div>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                </div>
+
+                {/* 8-Class Softmax Probability Breakdown */}
+                <div className="pro-card p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-teal-100 text-teal-600 flex items-center justify-center">
+                        <Brain className="w-3.5 h-3.5" />
+                      </div>
+                      <span>8-Class Softmax Probability Breakdown</span>
+                    </h3>
+                    <span className="text-[11px] font-mono text-slate-400 font-semibold">Σ p(c) = 1.0</span>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {activeClassification.probabilities.map((prob) => {
+                      const isTop = prob.percentage > 50 || prob.label === activeClassification.topClass;
+                      return (
+                        <div key={prob.label} className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className={`font-medium ${isTop ? 'text-teal-900 font-extrabold' : 'text-slate-600'}`}>
+                              {prob.label}
+                            </span>
+                            <span className={`font-mono text-[11px] ${isTop ? 'text-teal-700 font-black' : 'text-slate-500'}`}>
+                              {prob.percentage}%
+                            </span>
+                          </div>
+                          <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full transition-all duration-500 ${
+                                isTop 
+                                  ? 'bg-gradient-to-r from-teal-500 via-cyan-500 to-emerald-500 shadow-sm shadow-teal-500/30' 
+                                  : 'bg-slate-300'
+                              }`}
+                              style={{ width: `${Math.min(100, Math.max(2, prob.percentage))}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            );
+          })()}
 
           {/* Top Contributing Receptive Patches List */}
           <div className="pro-card p-5">
@@ -360,7 +416,7 @@ export const ViTPage: React.FC = () => {
               <span>Highest Contributing Attention Tokens</span>
             </h3>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              {classification.topPatches.map((patch) => (
+              {sample.classification.topPatches.map((patch: any) => (
                 <div 
                   key={patch.id} 
                   className="p-2.5 rounded-xl bg-slate-50/80 hover:bg-teal-50/40 border border-slate-200/90 hover:border-teal-300/80 transition-all duration-200 flex flex-col justify-between"
