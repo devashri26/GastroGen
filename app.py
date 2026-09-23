@@ -28,6 +28,10 @@ except ImportError:
             return fn
     spaces = _SpacesMock()
 
+@spaces.GPU(duration=60)
+def _gpu_probe():
+    return True
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -610,6 +614,10 @@ theme = gr.themes.Soft(
 
 def create_gradio_app():
     with gr.Blocks(title="GastroGen — Generative AI for Gastrointestinal Health") as demo:
+        # ZeroGPU probe registration
+        probe_btn = gr.Button("ZeroGPU Probe", visible=False)
+        probe_btn.click(fn=_gpu_probe)
+
         # Top Hero Header
         gr.HTML("""
         <div class="hero-header">
@@ -869,63 +877,40 @@ async def api_anomaly(file: UploadFile = File(...)):
     }
 
 # -------------------------------------------------------------
-# 7. Mount Gradio onto FastAPI & Production Launch (Steps 17 - 19)
+# 7. Mount FastAPI Routes into Gradio & Launch (Steps 17 - 19)
 # -------------------------------------------------------------
 demo = create_gradio_app()
-app = gr.mount_gradio_app(app, demo, path="/", ssr_mode=False)
+
+# Attach REST API router and CORS middleware to Gradio's internal FastAPI app
+if hasattr(demo, "app") and demo.app is not None:
+    demo.app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    demo.app.include_router(app.router)
 
 if __name__ == "__main__":
-    import socket
-
-    def resolve_server_port():
-        # Hugging Face Spaces routes external traffic to port 7860.
-        # Check candidate ports to find one that is actually free to bind.
-        candidates = [7860]
-        env_port = os.environ.get("PORT")
-        if env_port:
-            try:
-                candidates.append(int(env_port))
-            except ValueError:
-                pass
-        candidates.extend([7861, 7862, 8000])
-
-        seen = set()
-        unique_candidates = [p for p in candidates if not (p in seen or seen.add(p))]
-
-        for candidate in unique_candidates:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                try:
-                    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                    s.bind(("0.0.0.0", candidate))
-                    return candidate
-                except OSError:
-                    continue
-        return 7860
-
-    port = resolve_server_port()
+    port = int(os.environ.get("PORT", 7860))
     zerogpu_status = "enabled" if (os.environ.get("SPACES_ZERO_GPU") or hasattr(spaces, "GPU")) else "available"
     ae_status = "loaded" if "autoencoder" in loaded_models else "missing"
     vae_status = "loaded" if "vae" in loaded_models else "missing"
     trans_status = "loaded" if "transformer_vae" in loaded_models else "missing"
     norm_status = "loaded" if "normal_only_autoencoder" in loaded_models else "missing"
 
-    print("=" * 50)
-    print(f"GastroGen Backend Starting on Port {port}")
-    print("=" * 50)
-    print(f"PyTorch version: {torch.__version__}")
-    print(f"ZeroGPU: {zerogpu_status}")
-    print("Models:")
-    print(f"  Autoencoder: {ae_status}")
-    print(f"  Spatial VAE: {vae_status}")
-    print(f"  Transformer: {trans_status}")
-    print(f"  Normal-only AE: {norm_status}")
-    print("API:")
-    print("  GET  /health")
-    print("  POST /api/reconstruct")
-    print("  POST /api/classify")
-    print("  POST /api/generate")
-    print("  POST /api/anomaly")
-    print("=" * 50)
+    print("=" * 65)
+    print(f"  [OK] GastroGen ZeroGPU Deployment Starting on Port {port}")
+    print(f"  --> Serving Gradio Interface & REST API on: http://0.0.0.0:{port}")
+    print("  --> ZeroGPU Inference Functions: @spaces.GPU Active")
+    print("=" * 65)
 
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    demo.launch(
+        server_name="0.0.0.0",
+        server_port=port,
+        theme=theme,
+        css=CUSTOM_CSS
+    )
+
 
