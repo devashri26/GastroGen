@@ -4,6 +4,15 @@
  */
 
 const API_URL = ((import.meta as any).env?.VITE_API_URL || '').replace(/\/+$/, '');
+const HF_TOKEN = ((import.meta as any).env?.VITE_HF_TOKEN || '').trim();
+
+function getHeaders(extra: Record<string, string> = {}): Record<string, string> {
+  const headers: Record<string, string> = { ...extra };
+  if (HF_TOKEN) {
+    headers['Authorization'] = `Bearer ${HF_TOKEN}`;
+  }
+  return headers;
+}
 
 export interface HealthResponse {
   status: string;
@@ -106,7 +115,7 @@ async function resolveFile(fileOrUrl: File | string, defaultFilename = 'image.pn
 export async function healthCheck(): Promise<HealthResponse> {
   const endpoint = `${API_URL}/health`;
   const res = await fetch(endpoint, {
-    headers: { 'Accept': 'application/json' },
+    headers: getHeaders({ 'Accept': 'application/json' }),
   });
   if (!res.ok) {
     throw new Error(`Health probe failed: ${res.status} ${res.statusText}`);
@@ -135,6 +144,7 @@ export async function reconstructImage(
   const endpoint = `${API_URL}/api/reconstruct`;
   const res = await fetch(endpoint, {
     method: 'POST',
+    headers: getHeaders(),
     body: formData,
   });
 
@@ -181,6 +191,7 @@ export async function classifyImage(fileOrUrl: File | string): Promise<Classific
   const endpoint = `${API_URL}/api/classify`;
   const res = await fetch(endpoint, {
     method: 'POST',
+    headers: getHeaders(),
     body: formData,
   });
 
@@ -212,6 +223,7 @@ export async function generateImage(params: GenerationParams = {}): Promise<Gene
   const endpoint = `${API_URL}/api/generate`;
   const res = await fetch(endpoint, {
     method: 'POST',
+    headers: getHeaders(),
     body: formData,
   });
 
@@ -236,6 +248,7 @@ export async function detectAnomaly(fileOrUrl: File | string): Promise<AnomalyRe
   const endpoint = `${API_URL}/api/anomaly`;
   const res = await fetch(endpoint, {
     method: 'POST',
+    headers: getHeaders(),
     body: formData,
   });
 

@@ -869,10 +869,37 @@ async def api_anomaly(file: UploadFile = File(...)):
 # 7. Mount Gradio onto FastAPI & Production Launch (Steps 17 - 19)
 # -------------------------------------------------------------
 demo = create_gradio_app()
-app = gr.mount_gradio_app(app, demo, path="/")
+app = gr.mount_gradio_app(app, demo, path="/", ssr_mode=False)
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 7860))
+    import socket
+
+    def resolve_server_port():
+        # Hugging Face Spaces routes external traffic to port 7860.
+        # Check candidate ports to find one that is actually free to bind.
+        candidates = [7860]
+        env_port = os.environ.get("PORT")
+        if env_port:
+            try:
+                candidates.append(int(env_port))
+            except ValueError:
+                pass
+        candidates.extend([7861, 7862, 8000])
+
+        seen = set()
+        unique_candidates = [p for p in candidates if not (p in seen or seen.add(p))]
+
+        for candidate in unique_candidates:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                try:
+                    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                    s.bind(("0.0.0.0", candidate))
+                    return candidate
+                except OSError:
+                    continue
+        return 7860
+
+    port = resolve_server_port()
     zerogpu_status = "enabled" if (os.environ.get("SPACES_ZERO_GPU") or hasattr(spaces, "GPU")) else "available"
     ae_status = "loaded" if "autoencoder" in loaded_models else "missing"
     vae_status = "loaded" if "vae" in loaded_models else "missing"
@@ -880,7 +907,7 @@ if __name__ == "__main__":
     norm_status = "loaded" if "normal_only_autoencoder" in loaded_models else "missing"
 
     print("=" * 50)
-    print("GastroGen Backend Starting")
+    print(f"GastroGen Backend Starting on Port {port}")
     print("=" * 50)
     print(f"PyTorch version: {torch.__version__}")
     print(f"ZeroGPU: {zerogpu_status}")
@@ -898,3 +925,4 @@ if __name__ == "__main__":
     print("=" * 50)
 
     uvicorn.run(app, host="0.0.0.0", port=port)
+
