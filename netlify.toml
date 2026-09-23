@@ -1,10 +1,17 @@
 # Netlify Configuration for GastroGen
-# Automatically detects frontend directory if root is connected
-[build]
-  base = "frontend"
-  command = "npm run build"
-  publish = "dist"
+# Deploys frontend1 as the production medical dashboard
 
+[build]
+  publish = "frontend1/frontend"
+
+# Transparent proxy to live Hugging Face ZeroGPU backend
+[[redirects]]
+  from = "/api/*"
+  to = "https://devashri26-gastrogen.hf.space/api/:splat"
+  status = 200
+  force = true
+
+# Single Page Application navigation fallback
 [[redirects]]
   from = "/*"
   to = "/index.html"

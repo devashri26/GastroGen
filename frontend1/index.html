@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GastroGen — Generative AI for Gastrointestinal Health</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css?v=2">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="top-header">
+    <div class="brand-container">
+      <div class="logo-icon">
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 3C10.5 3 6 8.5 6 15C6 21.5 11 27 18 33C25 27 30 21.5 30 15C30 8.5 25.5 3 18 3Z" fill="url(#brandGrad)" opacity="0.9"/>
+          <path d="M14 13C14 10.5 16 8.5 18 8.5C20.5 8.5 22 10.5 22 13C22 16.5 17 19.5 17 22.5" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"/>
+          <circle cx="17" cy="26" r="1.5" fill="#ffffff"/>
+          <defs>
+            <linearGradient id="brandGrad" x1="6" y1="3" x2="30" y2="33" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#EC4899"/>
+              <stop offset="0.5" stop-color="#8B5CF6"/>
+              <stop offset="1" stop-color="#6366F1"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-title">GastroGen</span>
+        <span class="brand-sub">Generative AI for Gastrointestinal Health</span>
+      </div>
+    </div>
+
+    <div class="header-center-title">
+      <h1>A Multi-Model Generative AI Framework</h1>
+      <p>for Synthetic Gastrointestinal Data Augmentation and Disease Reconstruction</p>
+    </div>
+
+    <div class="user-profile">
+      <div class="avatar">
+        <i class="fa-solid fa-user"></i>
+      </div>
+      <span class="user-name">Welcome, Preeti</span>
+      <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
+    </div>
+  </header>
+
+  <div class="app-layout">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <nav class="nav-menu">
+        <a href="#autoencoder" class="nav-item active" id="nav-ae">
+          <i class="fa-solid fa-layer-group"></i>
+          <span>Autoencoder (AE v2)</span>
+        </a>
+        <a href="#vae" class="nav-item" id="nav-vae">
+          <i class="fa-solid fa-diagram-project"></i>
+          <span>Variational AE (VAE v2)</span>
+        </a>
+        <a href="#transformer" class="nav-item" id="nav-transformer">
+          <i class="fa-solid fa-brain"></i>
+          <span>Vision Transformer (ViT v2)</span>
+        </a>
+        <a href="#comparison" class="nav-item" id="nav-comparison">
+          <i class="fa-solid fa-chart-simple"></i>
+          <span>Model Comparison</span>
+        </a>
+        <a href="#dataset" class="nav-item" id="nav-dataset">
+          <i class="fa-solid fa-database"></i>
+          <span>Dataset Info</span>
+        </a>
+        <a href="#about" class="nav-item" id="nav-about">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>About</span>
+        </a>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <div class="watermark-graphic">
+          <svg viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="organ-vector">
+            <path d="M50 15 C35 15, 25 25, 25 40 C25 55, 40 65, 50 80 C60 65, 75 55, 75 40 C75 25, 65 15, 50 15 Z" fill="#6366F1" fill-opacity="0.1" stroke="#6366F1" stroke-opacity="0.25" stroke-width="2"/>
+            <path d="M35 75 C30 85, 30 100, 50 105 C70 100, 70 85, 65 75" stroke="#6366F1" stroke-opacity="0.25" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <p class="tagline">AI for a<br><strong>Healthier Tomorrow</strong></p>
+      </div>
+    </aside>
+
+    <!-- Main Content Dashboard -->
+    <main class="main-dashboard">
+      
+      <!-- ====================================================================
+           SECTION 1: AUTOENCODER (AE v2) WORKBENCH
+           ==================================================================== -->
+      <section class="view-section active" id="view-autoencoder">
+        
+        <!-- Banner -->
+        <div class="section-banner">
+          <div class="banner-text">
+            <h2>Convolutional Autoencoder (v2) Reconstruction Studio</h2>
+            <p>Upload any endoscopy image to run real PyTorch inference through the 256-dimensional compressed latent bottleneck and inspect real-time reconstruction quality metrics & training loss curves.</p>
+          </div>
+          <div class="banner-badge-group">
+            <span class="model-pill"><i class="fa-solid fa-microchip"></i> Latent Dim: 256</span>
+            <span class="model-pill"><i class="fa-solid fa-bolt"></i> Res: 256x256</span>
+            <span class="model-pill success"><i class="fa-solid fa-circle-check"></i> Model Active</span>
+          </div>
+        </div>
+
+        <!-- Row 1: Interactive Upload & Reconstruction vs Training Loss Curves -->
+        <div class="dashboard-row row-recon-grid">
+          
+          <!-- Card 1: Interactive Live Reconstruction Engine -->
+          <div class="card card-recon-engine">
+            <div class="card-header">
+              <div class="header-title-wrap">
+                <i class="fa-solid fa-wand-magic-sparkles text-primary"></i>
+                <h3>Interactive Image Upload & Live Reconstruction</h3>
+              </div>
+              <span class="header-badge">PyTorch Live Inference</span>
+            </div>
+            
+            <div class="recon-engine-body">
+              <!-- Upload Box -->
+              <div class="upload-dropzone dropzone-mini" id="aeDropzone">
+                <input type="file" id="aeFileInput" accept="image/*" style="display:none">
+                <div class="dropzone-content" id="aeDropzoneContent">
+                  <div class="upload-icon-circle mini">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                  </div>
+                  <p class="dropzone-text mini"><strong>Click or Drag & Drop Endoscopy Image</strong> (JPG, PNG)</p>
+                </div>
+              </div>
+
+              <!-- Quick Sample Picker -->
+              <div class="sample-picker-bar">
+                <span class="sample-label">Or pick sample:</span>
+                <div class="sample-chips" id="aeSampleChips">
+                  <button class="chip active" data-src="assets/samples/polyps.jpg" data-class="polyps">Polyp</button>
+                  <button class="chip" data-src="assets/samples/normal-cecum.jpg" data-class="normal-cecum">Normal Cecum</button>
+                  <button class="chip" data-src="assets/samples/ulcerative-colitis.jpg" data-class="ulcerative-colitis">Ulcerative Colitis</button>
+                  <button class="chip" data-src="assets/samples/esophagitis.jpg" data-class="esophagitis">Esophagitis</button>
+                  <button class="chip" data-src="assets/samples/normal-pylorus.jpg" data-class="normal-pylorus">Normal Pylorus</button>
+                  <button class="chip" data-src="assets/samples/normal-z-line.jpg" data-class="normal-z-line">Normal Z-line</button>
+                  <button class="chip" data-src="assets/samples/dyed-lifted-polyps.jpg" data-class="dyed-lifted-polyps">Dyed-Lifted Polyps</button>
+                  <button class="chip" data-src="assets/samples/dyed-resection-margins.jpg" data-class="dyed-resection-margins">Dyed Resection Margins</button>
+                </div>
+              </div>
+
+              <!-- Side-by-Side Visual Comparison -->
+              <div class="side-by-side-recon">
+                <div class="recon-col">
+                  <div class="img-label"><i class="fa-regular fa-image"></i> Original Input (256x256)</div>
+                  <div class="img-frame">
+                    <img id="aeInputPreview" src="assets/samples/polyps.jpg" alt="Original Input">
+                  </div>
+                </div>
+
+                <div class="recon-arrow-divider">
+                  <div class="arrow-circle">
+                    <i class="fa-solid fa-arrow-right"></i>
+                  </div>
+                  <span class="bottleneck-tag">Encoder-Decoder<br><small>256-D</small></span>
+                </div>
+
+                <div class="recon-col">
+                  <div class="img-label"><i class="fa-solid fa-sparkles"></i> Reconstructed Output</div>
+                  <div class="img-frame recon-glow">
+                    <img id="aeReconPreview" src="assets/samples/polyps.jpg" alt="Reconstructed Output">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Live Calculated Metrics Ribbon -->
+              <div class="metrics-ribbon" id="aeMetricsRibbon">
+                <div class="metric-box">
+                  <span class="m-title">SSIM Score</span>
+                  <span class="m-val highlight-green" id="aeMetricSSIM">0.9844</span>
+                  <span class="m-sub">Structural Similarity</span>
+                </div>
+                <div class="metric-box">
+                  <span class="m-title">PSNR</span>
+                  <span class="m-val highlight-blue" id="aeMetricPSNR">28.18 dB</span>
+                  <span class="m-sub">Peak Signal-to-Noise</span>
+                </div>
+                <div class="metric-box">
+                  <span class="m-title">MSE Loss</span>
+                  <span class="m-val" id="aeMetricMSE">0.001519</span>
+                  <span class="m-sub">Mean Squared Error</span>
+                </div>
+                <div class="metric-box">
+                  <span class="m-title">Inference Time</span>
+                  <span class="m-val highlight-purple" id="aeMetricLatency">12.4 ms</span>
+                  <span class="m-sub">GPU Execution</span>
+                </div>
+              </div>
+
+              <!-- Reconstruct Action Button -->
+              <button class="btn btn-primary btn-block" id="aeReconstructBtn">
+                <i class="fa-solid fa-rotate"></i> Reconstruct Endoscopy Image
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 2: Training Convergence & Loss Dynamics -->
+          <div class="card card-loss-analytics">
+            <div class="card-header">
+              <div class="header-title-wrap">
+                <i class="fa-solid fa-chart-line text-purple"></i>
+                <h3>Training Convergence & Loss Functions (50 Epochs)</h3>
+              </div>
+              <span class="header-badge purple">metrics/autoencoder_v2</span>
+            </div>
+            <div class="loss-body">
+              <div class="loss-summary-cards">
+                <div class="l-card">
+                  <span class="l-lbl">Best Val Loss</span>
+                  <span class="l-num text-purple">0.0228</span>
+                </div>
+                <div class="l-card">
+                  <span class="l-lbl">Val SSIM</span>
+                  <span class="l-num text-green">0.9814</span>
+                </div>
+                <div class="l-card">
+                  <span class="l-lbl">Avg PSNR</span>
+                  <span class="l-num text-blue">34.27 dB</span>
+                </div>
+                <div class="l-card">
+                  <span class="l-lbl">Total Epochs</span>
+                  <span class="l-num">50</span>
+                </div>
+              </div>
+
+              <!-- Chart.js Loss Curve -->
+              <div class="chart-wrapper-loss">
+                <canvas id="aeLossChart"></canvas>
+              </div>
+
+              <div class="loss-explanation">
+                <div class="loss-pill"><span class="dot train-dot"></span> <strong>Train Loss:</strong> Conv4 Feature Reconstruction</div>
+                <div class="loss-pill"><span class="dot val-dot"></span> <strong>Val Loss:</strong> Zero-leakage Validation Split</div>
+                <div class="loss-pill"><span class="dot" style="background:#10B981;"></span> <strong>Val SSIM:</strong> Structural Fidelity (%)</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Row 2: Per-Class Reconstruction Performance & Latent Bottleneck Info -->
+        <div class="dashboard-row row-details-grid">
+          
+          <!-- Per-Class Performance Bar Chart -->
+          <div class="card card-per-class">
+            <div class="card-header">
+              <div class="header-title-wrap">
+                <i class="fa-solid fa-chart-column text-blue"></i>
+                <h3>Per-Class Reconstruction Quality (SSIM & PSNR dB)</h3>
+              </div>
+              <span class="header-badge">8 Kvasir Classes</span>
+            </div>
+            <div class="chart-wrapper-class">
+              <canvas id="aeClassChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Latent Bottleneck Inspector -->
+          <div class="card card-bottleneck">
+            <div class="card-header">
+              <div class="header-title-wrap">
+                <i class="fa-solid fa-network-wired text-orange"></i>
+                <h3>Latent Bottleneck Architecture (256-D)</h3>
+              </div>
+              <span class="header-badge orange">Compression Ratio: 768:1</span>
+            </div>
+            <div class="bottleneck-body">
+              <p class="bottleneck-desc">Input tensors (3x256x256 = 196,608 values) are progressively compressed through 4 convolutional downsampling stages into a 256-dimensional compact feature embedding.</p>
+              
+              <div class="layer-flow-diagram">
+                <div class="flow-step">
+                  <span class="step-name">Input</span>
+                  <span class="step-dim">3 x 256 x 256</span>
+                </div>
+                <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                <div class="flow-step">
+                  <span class="step-name">Conv1 + BN</span>
+                  <span class="step-dim">32 x 128 x 128</span>
+                </div>
+                <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                <div class="flow-step">
+                  <span class="step-name">Conv2 + BN</span>
+                  <span class="step-dim">64 x 64 x 64</span>
+                </div>
+                <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                <div class="flow-step">
+                  <span class="step-name">Conv3 + BN</span>
+                  <span class="step-dim">128 x 32 x 32</span>
+                </div>
+                <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                <div class="flow-step">
+                  <span class="step-name">Conv4 + BN</span>
+                  <span class="step-dim">256 x 16 x 16</span>
+                </div>
+                <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                <div class="flow-step bottleneck-active">
+                  <span class="step-name">Dense z</span>
+                  <span class="step-dim">256 Latents</span>
+                </div>
+              </div>
+
+              <div class="latent-heatmap-preview">
+                <div class="heatmap-title">Live Latent Activation Spectrum (256 Features):</div>
+                <div class="latent-vector-grid" id="aeLatentGrid"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ====================================================================
+           SECTION 2: VARIATIONAL AUTOENCODER (VAE v2) WORKBENCH
+           ==================================================================== -->
+      <section class="view-section" id="view-vae">
+        
+        <!-- Banner -->
+        <div class="section-banner vae-gradient">
+          <div class="banner-text">
+            <h2>Spatial Continuous Latent VAE (v2) Studio</h2>
+            <p>Spatial Continuous Latent Space ($8 \times 32 \times 32$) with Sobel Edge Gradient Loss. Combines continuous probabilistic sampling $\mathcal{N}(\mu, \sigma^2)$ with high-fidelity anatomical edge preservation.</p>
+          </div>
+          <div class="banner-badge-group">
+            <span class="model-pill"><i class="fa-solid fa-diagram-project"></i> Latent: 8x32x32</span>
+            <span class="model-pill"><i class="fa-solid fa-wave-square"></i> Sobel Edge Loss</span>
+            <span class="model-pill success"><i class="fa-solid fa-circle-check"></i> VAE v2 Loaded</span>
+          </div>
+        </div>
+
+        <!-- Row 1: Interactive Live VAE Reconstruction vs Multi-Objective Loss Curves -->
+        <div class="dashboard-row row-recon-grid">
+          
+          <!-- Card 1: Interactive Live VAE Reconstruction Engine -->
+          <div class="card card-recon-engine">
+            <div class="card-header">
+              <div class="header-title-wrap">
+                <i class="fa-solid fa-microscope text-pink"></i>
+                <h3>Interactive VAE Upload, Reconstruction & Prior Sampling</h3>
+              </div>
+              <span class="header-badge pink">Spatial Probabilistic Engine</span>
+            </div>
+            
+            <div class="recon-engine-body">
+              <!-- Upload Box -->
+              <div class="upload-dropzone dropzone-mini" id="vaeDropzone">
+                <input type="file" id="vaeFileInput" accept="image/*" style="display:none">
+                <div class="dropzone-content" id="vaeDropzoneContent">
+                  <div class="upload-icon-circle mini pink">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                  </div>
+                  <p class="dropzone-text mini"><strong>Click or Drag & Drop Endoscopy Image</strong> (JPG, PNG)</p>
+                </div>
+              </div>
+
+              <!-- Quick Sample Picker -->
+              <div class="sample-picker-bar">
+                <span class="sample-label">Or pick sample:</span>
+                <div class="sample-chips" id="vaeSampleChips">
+                  <button class="chip active" data-src="assets/samples/polyps.jpg" data-class="polyps">Polyp</button>
+                  <button class="chip" data-src="assets/samples/normal-cecum.jpg" data-class="normal-cecum">Normal Cecum</button>
+                  <button class="chip" data-src="assets/samples/ulcerative-colitis.jpg" data-class="ulcerative-colitis">Ulcerative Colitis</button>
+                  <button class="chip" data-src="assets/samples/esophagitis.jpg" data-class="esophagitis">Esophagitis</button>
+                  <button class="chip" data-src="assets/samples/normal-pylorus.jpg" data-class="normal-pylorus">Normal Pylorus</button>
+                  <button class="chip" data-src="assets/samples/normal-z-line.jpg" data-class="normal-z-line">Normal Z-line</button>
+                  <button class="chip" data-src="assets/samples/dyed-lifted-polyps.jpg" data-class="dyed-lifted-polyps">Dyed-Lifted Polyps</button>
+                  <button class="chip" data-src="assets/samples/dyed-resection-margins.jpg" data-class="dyed-resection-margins">Dyed Resection Margins</button>
+                </div>
+              </div>
+
+              <!-- Side-by-Side Visual Comparison -->
+              <div class="side-by-side-recon">
+                <div class="recon-col">
+                  <div class="img-label"><i class="fa-regular fa-image"></i> Original Input (256x256)</div>
+                  <div class="img-frame">
+                    <img id="vaeInputPreview" src="assets/samples/polyps.jpg" alt="Original Input">
+                  </div>
+                </div>
+
+                <div class="recon-arrow-divider">
+                  <div class="arrow-circle pink">
+                    <i class="fa-solid fa-shuffle"></i>
+                  </div>
+                  <span class="bottleneck-tag">Spatial Latents<br><small>8x32x32 Maps</small></span>
+                </div>
+
+                <div class="recon-col">
+                  <div class="img-label"><i class="fa-solid fa-sparkles"></i> VAE Reconstructed Output</div>
+                  <div class="img-frame recon-glow pink">
+                    <img id="vaeReconPreview" src="assets/samples/polyps.jpg" alt="VAE Reconstructed Output">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Live Calculated Metrics Ribbon -->
+              <div class="metrics-ribbon" id="vaeMetricsRibbon">
+                <div class="metric-box">
+                  <span class="m-title">SSIM Score</span>
+                  <span class="m-val highlight-green" id="vaeMetricSSIM">0.9527</span>
+                  <span class="m-sub">Structural Similarity</span>
+                </div>
+                <div class="metric-box">
+                  <span class="m-title">PSNR</span>
+                  <span class="m-val highlight-pink" id="vaeMetricPSNR">22.87 dB</span>
+                  <span class="m-sub">Peak Signal-to-Noise</span>
+                </div>
+                <div class="metric-box">
+                  <span class="m-title">MSE Loss</span>
+                  <span class="m-val" id="vaeMetricMSE">0.005168</span>
+                  <span class="m-sub">Mean Squared Error</span>
+                </div>
+                <div class="metric-box">
+                  <span class="m-title">Edge Loss</span>
+                  <span class="m-val highlight-purple" id="vaeMetricEdge">Sobel Active</span>
+                  <span class="m-sub">High-Freq Sharpness</span>
+                </div>
+              </div>
+
+              <!-- Action Buttons Row -->
+              <div class="btn-group-row">
+                <button class="btn btn-primary" id="vaeReconstructBtn" style="flex:1;">
+                  <i class="fa-solid fa-rotate"></i> Reconstruct Endoscopy
+                </button>
+                <button class="btn btn-secondary" id="vaeSamplePriorBtn" style="flex:1;">
+                  <i class="fa-solid fa-dice"></i> Sample Prior $\mathcal{N}(0, I)$
+                </button>
+              </div>
+
+              <!-- Synthetic Samples Row (Dynamic Generation) -->
+              <div class="synth-samples-drawer" id="vaeSynthDrawer">
+                <div class="drawer-header">
+                  <span class="drawer-title"><i class="fa-solid fa-wand-magic"></i> Live Generated Synthetic Samples (From Latent Prior):</span>
+                </div>
+                <div class="drawer-grid" id="vaeSynthGrid">
+                  <div class="drawer-thumb"><img src="assets/samples/polyps.jpg" alt="Synth 1"></div>
+                  <div class="drawer-thumb"><img src="assets/samples/polyps_2.jpg" alt="Synth 2"></div>
+                  <div class="drawer-thumb"><img src="assets/samples/polyps_3.jpg" alt="Synth 3"></div>
+                  <div class="drawer-thumb"><img src="assets/samples/polyps_4.jpg" alt="Synth 4"></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Card 2: VAE Multi-Objective Loss Curves -->
+          <div class="card card-loss-analytics">
+            <div class="card-header">
+              <div class="header-title-wrap">
+                <i class="fa-solid fa-chart-area text-pink"></i>
+                <h3>VAE Loss Dynamics (Recon + KL + Edge Sobel)</h3>
+              </div>
+              <span class="header-badge pink">metrics/vae_v2</span>
+            </div>
+            <div class="loss-body">
+              <div class="loss-summary-cards">
+                <div class="l-card">
+                  <span class="l-lbl">Best Val SSIM</span>
+                  <span class="l-num text-pink">0.9744</span>
+                </div>
+                <div class="l-card">
+                  <span class="l-lbl">Best Val PSNR</span>
+                  <span class="l-num text-purple">32.23 dB</span>
+                </div>
+                <div class="l-card">
+                  <span class="l-lbl">KL Beta Weight</span>
+                  <span class="l-num">5e-6</span>
+                </div>
+                <div class="l-card">
+                  <span class="l-lbl">L1 + Sobel Loss</span>
+                  <span class="l-num">0.0267</span>
+                </div>
+              </div>
+
+              <!-- Chart.js Loss Curve -->
+              <div class="chart-wrapper-loss">
+                <canvas id="vaeLossChart"></canvas>
+              </div>
+
+              <div class="loss-explanation">
+                <div class="loss-pill"><span class="dot pink-dot"></span> <strong>Train Recon + Sobel:</strong> Pixel + Gradient Loss</div>
+                <div class="loss-pill"><span class="dot purple-dot"></span> <strong>Val Loss:</strong> Generalization Metric</div>
+                <div class="loss-pill"><span class="dot" style="background:#A855F7;"></span> <strong>KL Loss:</strong> Latent Regularization ($D_{KL}$)</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Row 2: Per-Class VAE Quality & Spatial Latents Details -->
+        <div class="dashboard-row row-details-grid">
+          
+          <!-- Per-Class VAE Bar Chart -->
+          <div class="card card-per-class">
+            <div class="card-header">
+              <div class="header-title-wrap">
+                <i class="fa-solid fa-chart-column text-pink"></i>
+                <h3>VAE Per-Class Reconstruction Scores (8 Classes)</h3>
+              </div>
+              <span class="header-badge pink">Zero-Leakage Test Set</span>
+            </div>
+            <div class="chart-wrapper-class">
+              <canvas id="vaeClassChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Spatial Latent Topology Inspector -->
+          <div class="card card-bottleneck">
+            <div class="card-header">
+              <div class="header-title-wrap">
+                <i class="fa-solid fa-cubes text-purple"></i>
+                <h3>Spatial Latent Space vs Flattened Bottleneck</h3>
+              </div>
+              <span class="header-badge purple">8 Channels x 32 x 32 Grid</span>
+            </div>
+            <div class="bottleneck-body">
+              <p class="bottleneck-desc">Unlike traditional VAEs that compress the image into a 1D vector (causing severe blurriness and posterior collapse), our upgraded <strong>Spatial VAE</strong> preserves a 2D spatial feature map ($8 \times 32 \times 32 = 8,192$ continuous latents) with residual connections.</p>
+              
+              <div class="comparison-pills-row">
+                <div class="comp-box error-box">
+                  <div class="comp-title"><i class="fa-solid fa-triangle-exclamation"></i> Baseline 1D VAE</div>
+                  <ul>
+                    <li>128-dim flat vector</li>
+                    <li>Loss of spatial coordinates</li>
+                    <li>Prone to posterior collapse & blur</li>
+                  </ul>
+                </div>
+
+                <div class="comp-box success-box">
+                  <div class="comp-title"><i class="fa-solid fa-circle-check"></i> GastroGen Spatial VAE v2</div>
+                  <ul>
+                    <li>8 x 32 x 32 2D spatial feature maps</li>
+                    <li>Retains polyp boundaries & vascular texture</li>
+                    <li>Sobel edge guidance prevents blur</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="latent-heatmap-preview">
+                <div class="heatmap-title">Spatial Feature Map Channels (8 Active Planes):</div>
+                <div class="spatial-channels-row">
+                  <div class="channel-chip">Ch 0: Vascular</div>
+                  <div class="channel-chip">Ch 1: Mucosa</div>
+                  <div class="channel-chip">Ch 2: Edges</div>
+                  <div class="channel-chip">Ch 3: Specular</div>
+                  <div class="channel-chip">Ch 4: Depth</div>
+                  <div class="channel-chip">Ch 5: Color</div>
+                  <div class="channel-chip">Ch 6: Lumen</div>
+                  <div class="channel-chip">Ch 7: Texture</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ====================================================================
+           SECTION 3: VISION TRANSFORMER (ViT v2) WORKBENCH
+           ==================================================================== -->
+      <section class="view-section" id="view-transformer">
+        
+        <!-- Banner -->
+        <div class="section-banner tf-banner">
+          <div class="banner-text">
+            <h2>Module 03: Vision Transformer (ViT-B/16 v2) Classification & Attention Explainability</h2>
+            <p>Real-time 8-class GI diagnosis with authentic multi-head self-attention rollout across all 12 transformer layers, 196 patch tokens, and natural language AI clinical narrative.</p>
+          </div>
+          <div class="banner-badge-group">
+            <span class="model-pill success"><i class="fa-solid fa-microchip"></i> ViT-B/16 Pretrained</span>
+            <span class="model-pill purple"><i class="fa-solid fa-border-all"></i> 196 Patches (14x14)</span>
+            <span class="model-pill teal"><i class="fa-solid fa-layer-group"></i> 12 Attention Layers</span>
+            <span class="model-pill"><i class="fa-solid fa-bullseye"></i> 92.0% Val Accuracy</span>
+          </div>
+        </div>
+
+        <!-- Dashboard Row 1: Interactive Explorer & Diagnostic Cards -->
+        <div class="dashboard-row row-recon-grid">
+          
+          <!-- Card 1: Interactive Live ViT Attention Explorer -->
+          <div class="card card-recon-engine card-tf-engine">
+            <div class="card-header">
+              <div class="header-title-wrap">
+                <i class="fa-solid fa-brain text-teal"></i>
+                <h3>Interactive ViT Upload & Multi-View Attention Analysis</h3>
+              </div>
+              <span class="header-badge teal">12-Layer Self-Attention Rollout</span>
+            </div>
+            
+            <div class="recon-engine-body">
+              <!-- Upload Box -->
+              <div class="upload-dropzone dropzone-mini" id="tfDropzone">
+                <input type="file" id="tfFileInput" accept="image/*" style="display:none">
+                <div class="dropzone-content" id="tfDropzoneContent">
+                  <div class="upload-icon-circle mini teal">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                  </div>
+                  <p class="dropzone-text mini"><strong>Click or Drag & Drop Endoscopy Image</strong> (JPG, PNG)</p>
+                </div>
+              </div>
+
+              <!-- Quick Sample Picker -->
+              <div class="sample-picker-bar">
+                <span class="sample-label">Or pick sample:</span>
+                <div class="sample-chips" id="tfSampleChips">
+                  <button class="chip active" data-src="assets/samples/polyps.jpg" data-class="polyps">Polyp</button>
+                  <button class="chip" data-src="assets/samples/normal-cecum.jpg" data-class="normal-cecum">Normal Cecum</button>
+                  <button class="chip" data-src="assets/samples/ulcerative-colitis.jpg" data-class="ulcerative-colitis">Ulcerative Colitis</button>
+                  <button class="chip" data-src="assets/samples/esophagitis.jpg" data-class="esophagitis">Esophagitis</button>
+                  <button class="chip" data-src="assets/samples/normal-pylorus.jpg" data-class="normal-pylorus">Normal Pylorus</button>
+                  <button class="chip" data-src="assets/samples/normal-z-line.jpg" data-class="normal-z-line">Normal Z-line</button>
+                  <button class="chip" data-src="assets/samples/dyed-lifted-polyps.jpg" data-class="dyed-lifted-polyps">Dyed-Lifted Polyps</button>
+                  <button class="chip" data-src="assets/samples/dyed-resection-margins.jpg" data-class="dyed-resection-margins">Dyed Resection Margins</button>
+                </div>
+              </div>
+
+              <!-- 4-View Switcher Toolbar -->
+              <div class="tf-view-switcher">
+                <div class="switcher-label"><i class="fa-solid fa-eye"></i> Active Visualizer View:</div>
+                <div class="switcher-buttons" id="tfViewButtons">
+                  <button class="tf-view-btn" data-view="original"><i class="fa-regular fa-image"></i> Original (224x224)</button>
+                  <button class="tf-view-btn" data-view="patch_grid"><i class="fa-solid fa-border-all"></i> Patch Grid (14x14)</button>
+                  <button class="tf-view-btn" data-view="attention_heatmap"><i class="fa-solid fa-fire"></i> Attention Heatmap</button>
+                  <button class="tf-view-btn active" data-view="attention_overlay"><i class="fa-solid fa-wand-magic-sparkles"></i> Attention Overlay</button>
+                </div>
+              </div>
+
+              <!-- Main Interactive Image Preview Frame -->
+              <div class="tf-preview-container">
+                <div class="img-label">
+                  <span id="tfActiveViewTitle"><i class="fa-solid fa-wand-magic-sparkles"></i> Attention Overlay (55% Original + 45% Turbo Heatmap)</span>
+                  <span class="view-tag teal" id="tfActiveViewTag">Composite</span>
+                </div>
+                <div class="img-frame tf-main-frame">
+                  <img id="tfMainPreview" src="assets/samples/polyps.jpg" alt="Active View">
+                </div>
+              </div>
+
+              <!-- 4-Thumbnail Simultaneous Tray -->
+              <div class="tf-thumbs-tray">
+                <div class="tf-tray-item" data-view="original">
+                  <span class="tray-label">Original</span>
+                  <div class="tray-thumb"><img id="tfThumbOriginal" src="assets/samples/polyps.jpg" alt="Original"></div>
+                </div>
+                <div class="tf-tray-item" data-view="patch_grid">
+                  <span class="tray-label">14x14 Patches</span>
+                  <div class="tray-thumb"><img id="tfThumbGrid" src="assets/samples/polyps.jpg" alt="Patch Grid"></div>
+                </div>
+                <div class="tf-tray-item" data-view="attention_heatmap">
+                  <span class="tray-label">Turbo Heatmap</span>
+                  <div class="tray-thumb"><img id="tfThumbHeatmap" src="assets/samples/polyps.jpg" alt="Heatmap"></div>
+                </div>
+                <div class="tf-tray-item active" data-view="attention_overlay">
+                  <span class="tray-label">Attention Overlay</span>
+                  <div class="tray-thumb"><img id="tfThumbOverlay" src="assets/samples/polyps.jpg" alt="Overlay"></div>
+                </div>
+              </div>
+
+              <!-- Action Button Row -->
+              <div class="btn-group-row">
+                <button class="btn btn-primary btn-teal" id="tfPredictBtn" style="flex:1;">
+                  <i class="fa-solid fa-bolt"></i> Run ViT Diagnosis & Attention Rollout
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Card 2: Predictions, 8-Class Probabilities & Patch Topology -->
+          <div class="card card-loss-analytics card-tf-results">
+            <div class="card-header">
+              <div class="header-title-wrap">
+                <i class="fa-solid fa-square-poll-vertical text-teal"></i>
+                <h3>Diagnostic Classification & Attention Topology</h3>
+              </div>
+              <span class="header-badge teal">Kvasir-v2 8-Class</span>
+            </div>
+            
+            <div class="loss-body tf-results-body">
+              
+              <!-- Diagnosis Hero Banner -->
+              <div class="tf-hero-diagnosis">
+                <div class="tf-hero-left">
+                  <span class="hero-sub">Predicted Finding:</span>
+                  <h2 class="hero-class" id="tfPredClass">Polyps</h2>
+                  <div class="hero-badges">
+                    <span class="c-type pathology" id="tfCategoryBadge">Pathological endoscopic finding</span>
+                    <span class="badge-score green" id="tfConfScore">94.2% Confidence</span>
+                  </div>
+                </div>
+                <div class="tf-hero-right">
+                  <span class="hero-metric-lbl">Inference Latency:</span>
+                  <span class="hero-metric-val" id="tfLatency">38.4 ms</span>
+                  <span class="hero-metric-device"><i class="fa-solid fa-microchip"></i> PyTorch CUDA</span>
+                </div>
+              </div>
+
+              <!-- 8-Class Horizontal Animated Probability Bars -->
+              <div class="tf-prob-section">
+                <div class="prob-section-title">
+                  <span><i class="fa-solid fa-chart-bar"></i> 8-Class Softmax Probability Distribution:</span>
+                </div>
+                <div class="tf-prob-bars" id="tfProbBars">
+                  <!-- Dynamically populated -->
+                </div>
+              </div>
+
+              <!-- Patch Grid Architecture & Top Attended Regions -->
+              <div class="tf-patch-section">
+                <div class="prob-section-title">
+                  <span><i class="fa-solid fa-crosshairs"></i> Top Self-Attention Receptive Patches:</span>
+                  <small class="text-muted">14x14 Grid &bull; 16x16px Patches</small>
+                </div>
+                <div class="tf-top-patches-grid" id="tfTopPatchesList">
+                  <!-- Dynamically populated -->
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Dashboard Row 2: AI Clinical Explanation & ViT Loss Dynamics -->
+        <div class="dashboard-row row-recon-grid">
+          
+          <!-- Card 3: AI-Assisted Clinical Narrative -->
+          <div class="card card-tf-narrative">
+            <div class="card-header">
+              <div class="header-title-wrap">
+                <i class="fa-solid fa-comment-medical text-teal"></i>
+                <h3>AI-Assisted Natural Language Diagnostic Report</h3>
+              </div>
+              <span class="header-badge teal">Generative Clinical Explanation</span>
+            </div>
+            <div class="narrative-body">
+              <div class="narrative-quote-box">
+                <div class="quote-icon"><i class="fa-solid fa-robot"></i></div>
+                <p class="narrative-text" id="tfExplanationText">
+                  Based on the visual analysis of the endoscopy image, the Vision Transformer classified the input as Polyps with a high confidence score of 94.2%, identifying it as a pathological endoscopic finding. The closest secondary differential evaluated by the model was Dyed-Lifted Polyps with an estimated probability of 3.8%. During the model's forward pass, the multi-head self-attention mechanism concentrated primarily on mucosal regions centered at grid patch coordinates (6,7), (6,8), and (7,7). These highlighted localized regions exhibited the highest self-attention weights, indicating that the visual textures and mucosal patterns within these patches contributed most significantly to the final classification decision.
+                </p>
+              </div>
+
+              <!-- Clinical Disclaimer -->
+              <div class="clinical-disclaimer">
+                <i class="fa-solid fa-triangle-exclamation text-orange"></i>
+                <span><strong>Clinical Research Disclaimer:</strong> For research and educational purposes only. This system is an AI assistive framework and is not a medical diagnostic tool. All endoscopic findings must be confirmed by qualified medical professionals.</span>
+              </div>
+
+              <!-- Mathematical Rollout Equation -->
+              <div class="math-callout">
+                <span class="math-title"><i class="fa-solid fa-square-root-variable"></i> Attention Rollout Formulation across 12 Layers:</span>
+                <code>R^{(l)} = (0.5 * A^{(l)} + 0.5 * I) * R^{(l-1)}, \quad \text{where } A^{(l)} = \text{mean}_{heads}(A_{h}^{(l)})</code>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: ViT-B/16 v2 Loss & Accuracy Dynamics (50 Epochs) -->
+          <div class="card card-loss-analytics">
+            <div class="card-header">
+              <div class="header-title-wrap">
+                <i class="fa-solid fa-chart-line text-teal"></i>
+                <h3>ViT-B/16 v2 Training & Validation Dynamics</h3>
+              </div>
+              <span class="header-badge teal">metrics/transformer_v2</span>
+            </div>
+            <div class="loss-body">
+              <div class="loss-summary-cards">
+                <div class="l-card">
+                  <span class="l-lbl">Best Val Accuracy</span>
+                  <span class="l-num text-teal">92.00%</span>
+                </div>
+                <div class="l-card">
+                  <span class="l-lbl">Top-3 Accuracy</span>
+                  <span class="l-num text-green">99.88%</span>
+                </div>
+                <div class="l-card">
+                  <span class="l-lbl">Macro F1</span>
+                  <span class="l-num text-purple">91.99%</span>
+                </div>
+                <div class="l-card">
+                  <span class="l-lbl">Label Smooth &epsilon;</span>
+                  <span class="l-num">0.05</span>
+                </div>
+              </div>
+
+              <!-- Chart.js Curve -->
+              <div class="chart-wrapper-loss">
+                <canvas id="tfLossAccuracyChart"></canvas>
+              </div>
+
+              <div class="loss-explanation">
+                <div class="loss-pill"><span class="dot teal-dot"></span> <strong>Validation Accuracy:</strong> Multi-Class Top-1 (Left Axis %)</div>
+                <div class="loss-pill"><span class="dot val-dot"></span> <strong>Train Loss:</strong> Smoothed Cross-Entropy (Right Axis)</div>
+                <div class="loss-pill"><span class="dot purple-dot"></span> <strong>Val Loss:</strong> Validation Cross-Entropy (Right Axis)</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ====================================================================
+           SECTION 4: MODEL COMPARISON WORKBENCH
+           ==================================================================== -->
+      <section class="view-section" id="view-comparison">
+        
+        <!-- Banner -->
+        <div class="section-banner">
+          <div class="banner-text">
+            <h2>Multi-Model Reconstruction & Generative Benchmark Comparison</h2>
+            <p>Upload a single endoscopy image to simultaneously evaluate reconstruction fidelity and diagnosis across Autoencoder v2, Spatial Continuous VAE v2, and Vision Transformer v2.</p>
+          </div>
+          <div class="banner-badge-group">
+            <span class="model-pill"><i class="fa-solid fa-code-compare"></i> 3 Models Evaluated</span>
+            <span class="model-pill success"><i class="fa-solid fa-circle-check"></i> Benchmark Ready</span>
+          </div>
+        </div>
+
+        <!-- 4-Way Multi-Model Side-by-Side Reconstruction -->
+        <div class="card card-comparison-live">
+          <div class="card-header">
+            <div class="header-title-wrap">
+              <i class="fa-solid fa-sliders text-primary"></i>
+              <h3>Side-by-Side Endoscopy Reconstruction (Real Inference)</h3>
+            </div>
+            <div class="comp-upload-action">
+              <input type="file" id="compFileInput" accept="image/*" style="display:none">
+              <button class="btn btn-sm btn-primary" id="compUploadBtn">
+                <i class="fa-solid fa-arrow-up-from-bracket"></i> Upload & Compare All
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Sample Picker for Model Comparison -->
+          <div class="sample-picker-bar comp-sample-picker">
+            <span class="sample-label">Or pick sample:</span>
+            <div class="sample-chips" id="compSampleChips">
+              <button class="chip active" data-src="assets/samples/polyps.jpg" data-class="polyps">Polyp</button>
+              <button class="chip" data-src="assets/samples/normal-cecum.jpg" data-class="normal-cecum">Normal Cecum</button>
+              <button class="chip" data-src="assets/samples/ulcerative-colitis.jpg" data-class="ulcerative-colitis">Ulcerative Colitis</button>
+              <button class="chip" data-src="assets/samples/esophagitis.jpg" data-class="esophagitis">Esophagitis</button>
+              <button class="chip" data-src="assets/samples/normal-pylorus.jpg" data-class="normal-pylorus">Normal Pylorus</button>
+              <button class="chip" data-src="assets/samples/normal-z-line.jpg" data-class="normal-z-line">Normal Z-line</button>
+              <button class="chip" data-src="assets/samples/dyed-lifted-polyps.jpg" data-class="dyed-lifted-polyps">Dyed-Lifted Polyps</button>
+              <button class="chip" data-src="assets/samples/dyed-resection-margins.jpg" data-class="dyed-resection-margins">Dyed Resection Margins</button>
+            </div>
+          </div>
+
+          <div class="comp-gallery-row" id="compGalleryRow">
+            
+            <!-- Real Image -->
+            <div class="comp-item">
+              <div class="comp-badge real">Original Input</div>
+              <div class="comp-thumb-box">
+                <img id="compImgReal" src="assets/samples/polyps.jpg" alt="Real Image">
+              </div>
+              <div class="comp-metrics-card">
+                <span class="c-tag">Ground Truth</span>
+                <span class="c-val">256 x 256 RGB</span>
+              </div>
+            </div>
+
+            <!-- Autoencoder v2 -->
+            <div class="comp-item">
+              <div class="comp-badge ae">Autoencoder v2</div>
+              <div class="comp-thumb-box">
+                <img id="compImgAE" src="assets/samples/polyps.jpg" alt="Autoencoder v2">
+              </div>
+              <div class="comp-metrics-card">
+                <div class="c-metric-row"><span>SSIM:</span> <strong id="compAeSSIM" class="highlight-green">0.9844</strong></div>
+                <div class="c-metric-row"><span>PSNR:</span> <strong id="compAePSNR" class="highlight-blue">28.18 dB</strong></div>
+                <div class="c-metric-row"><span>Latent:</span> <span>256-dim</span></div>
+              </div>
+            </div>
+
+            <!-- VAE v2 -->
+            <div class="comp-item">
+              <div class="comp-badge vae">VAE v2 (Spatial)</div>
+              <div class="comp-thumb-box">
+                <img id="compImgVAE" src="assets/samples/polyps.jpg" alt="VAE v2">
+              </div>
+              <div class="comp-metrics-card">
+                <div class="c-metric-row"><span>SSIM:</span> <strong id="compVaeSSIM" class="highlight-green">0.9527</strong></div>
+                <div class="c-metric-row"><span>PSNR:</span> <strong id="compVaePSNR" class="highlight-pink">22.87 dB</strong></div>
+                <div class="c-metric-row"><span>Latent:</span> <span>8x32x32</span></div>
+              </div>
+            </div>
+
+            <!-- Transformer v2 -->
+            <div class="comp-item">
+              <div class="comp-badge transformer">Vision Transformer v2</div>
+              <div class="comp-thumb-box">
+                <img id="compImgTF" src="assets/samples/polyps.jpg" alt="Vision Transformer v2">
+              </div>
+              <div class="comp-metrics-card">
+                <div class="c-metric-row"><span>Diagnosis:</span> <strong id="compTfClass" class="highlight-green">Polyps (94.2%)</strong></div>
+                <div class="c-metric-row"><span>Test Acc:</span> <strong id="compTfAcc" class="highlight-blue">92.00%</strong></div>
+                <div class="c-metric-row"><span>Rollout:</span> <span id="compTfPatch">12-Layer Attention</span></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Comparative Benchmark Table & Analytics -->
+        <div class="dashboard-row row-details-grid">
+          
+          <!-- Comprehensive Benchmark Table -->
+          <div class="card card-table-benchmark">
+            <div class="card-header">
+              <div class="header-title-wrap">
+                <i class="fa-solid fa-table-list text-primary"></i>
+                <h3>Medical Model Architecture & Benchmark Matrix</h3>
+              </div>
+              <span class="header-badge">Experimental Results</span>
+            </div>
+            <div class="table-responsive">
+              <table class="benchmark-table">
+                <thead>
+                  <tr>
+                    <th>Model Architecture</th>
+                    <th>Latent Topology</th>
+                    <th>Primary Metric</th>
+                    <th>Secondary Metric</th>
+                    <th>Loss Functions</th>
+                    <th>Augmentation / SOTA Gain</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong class="text-purple">Autoencoder v2</strong></td>
+                    <td>Dense 256-D Bottleneck</td>
+                    <td><span class="badge-score green">0.731 SSIM</span></td>
+                    <td><span class="badge-score blue">26.45 dB</span></td>
+                    <td>L1 + MSE Reconstruction</td>
+                    <td><strong class="text-success">+3.3% Gain</strong></td>
+                  </tr>
+                  <tr class="highlight-row">
+                    <td><strong class="text-pink">Spatial VAE v2</strong></td>
+                    <td>8 x 32 x 32 Spatial Maps</td>
+                    <td><span class="badge-score green">0.832 SSIM</span></td>
+                    <td><span class="badge-score pink">30.05 dB</span></td>
+                    <td>Sobel Edge + KL + MSE</td>
+                    <td><strong class="text-success">+5.9% Gain</strong></td>
+                  </tr>
+                  <tr class="highlight-row-teal">
+                    <td><strong class="text-teal">Vision Transformer v2</strong></td>
+                    <td>196 Patches (14x14) + CLS</td>
+                    <td><span class="badge-score green">92.00% Acc</span></td>
+                    <td><span class="badge-score teal">91.99% F1</span></td>
+                    <td>CrossEntropy (&epsilon;=0.05 Smooth)</td>
+                    <td><strong class="text-success">+13.8% SOTA</strong></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Augmentation Performance Gain Chart -->
+          <div class="card card-aug-chart">
+            <div class="card-header">
+              <div class="header-title-wrap">
+                <i class="fa-solid fa-chart-column text-green"></i>
+                <h3>Downstream Classification Accuracy with Augmentation</h3>
+              </div>
+              <span class="header-badge success">Kvasir-v2 8-Class</span>
+            </div>
+            <div class="chart-wrapper-aug">
+              <canvas id="compAugChart"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ====================================================================
+           SECTION 4: DATASET INFO WORKBENCH
+           ==================================================================== -->
+      <section class="view-section" id="view-dataset">
+        
+        <!-- Banner -->
+        <div class="section-banner dataset-gradient">
+          <div class="banner-text">
+            <h2>Kvasir-v2 Gastrointestinal Endoscopy Dataset Explorer</h2>
+            <p>8,000 clinically validated endoscopic images across 8 balanced pathological and anatomical classes. Preprocessed to 256x256 RGB with zero-leakage patient-level split (80% Train, 10% Val, 10% Test).</p>
+          </div>
+          <div class="banner-badge-group">
+            <span class="model-pill"><i class="fa-solid fa-database"></i> 8,000 Images</span>
+            <span class="model-pill"><i class="fa-solid fa-tags"></i> 8 Classes</span>
+            <span class="model-pill success"><i class="fa-solid fa-circle-check"></i> Preprocessed v2</span>
+          </div>
+        </div>
+
+        <!-- 8 Classes Interactive Grid -->
+        <div class="dataset-class-grid">
+          
+          <div class="class-card active" data-class="polyps">
+            <div class="class-header">
+              <span class="c-type pathology">Pathological</span>
+              <h4>Polyps</h4>
+            </div>
+            <p class="class-desc">Abnormal tissue growths along gastrointestinal mucosa. Precursors to colorectal cancer requiring detection and polypectomy.</p>
+            <div class="class-meta"><span>1,000 images</span> <span>High Clinical Priority</span></div>
+          </div>
+
+          <div class="class-card" data-class="ulcerative-colitis">
+            <div class="class-header">
+              <span class="c-type pathology">Pathological</span>
+              <h4>Ulcerative Colitis</h4>
+            </div>
+            <p class="class-desc">Chronic inflammatory bowel disease causing mucosal ulcers, erythema, and bleeding in the colon (Mayo score).</p>
+            <div class="class-meta"><span>1,000 images</span> <span>Inflammatory</span></div>
+          </div>
+
+          <div class="class-card" data-class="esophagitis">
+            <div class="class-header">
+              <span class="c-type pathology">Pathological</span>
+              <h4>Esophagitis</h4>
+            </div>
+            <p class="class-desc">Mucosal erosion and inflammation at the gastroesophageal junction caused by acid reflux (Los Angeles classification).</p>
+            <div class="class-meta"><span>1,000 images</span> <span>Upper GI</span></div>
+          </div>
+
+          <div class="class-card" data-class="dyed-lifted-polyps">
+            <div class="class-header">
+              <span class="c-type therapeutic">Therapeutic</span>
+              <h4>Dyed-Lifted Polyps</h4>
+            </div>
+            <p class="class-desc">Polyps injected submucosally with indigo carmine dye to separate mucosal layers prior to endoscopic resection.</p>
+            <div class="class-meta"><span>1,000 images</span> <span>Interventional</span></div>
+          </div>
+
+          <div class="class-card" data-class="dyed-resection-margins">
+            <div class="class-header">
+              <span class="c-type therapeutic">Therapeutic</span>
+              <h4>Dyed-Resection Margins</h4>
+            </div>
+            <p class="class-desc">Endoscopic resection site after polyp removal, treated with dye to verify clear margins and prevent bleeding.</p>
+            <div class="class-meta"><span>1,000 images</span> <span>Post-Procedure</span></div>
+          </div>
+
+          <div class="class-card" data-class="normal-cecum">
+            <div class="class-header">
+              <span class="c-type anatomical">Anatomical</span>
+              <h4>Normal Cecum</h4>
+            </div>
+            <p class="class-desc">The beginning of the large intestine marked by the appendiceal orifice and ileocecal valve, confirming complete colonoscopy.</p>
+            <div class="class-meta"><span>1,000 images</span> <span>Anatomical Landmark</span></div>
+          </div>
+
+          <div class="class-card" data-class="normal-pylorus">
+            <div class="class-header">
+              <span class="c-type anatomical">Anatomical</span>
+              <h4>Normal Pylorus</h4>
+            </div>
+            <p class="class-desc">The muscular valve between the stomach and duodenum, regulating passage of food and gastric acid.</p>
+            <div class="class-meta"><span>1,000 images</span> <span>Upper GI Valve</span></div>
+          </div>
+
+          <div class="class-card" data-class="normal-z-line">
+            <div class="class-header">
+              <span class="c-type anatomical">Anatomical</span>
+              <h4>Normal Z-Line</h4>
+            </div>
+            <p class="class-desc">Squamocolumnar junction separating the pale esophageal squamous epithelium from the pink gastric mucosa.</p>
+            <div class="class-meta"><span>1,000 images</span> <span>GE Junction</span></div>
+          </div>
+
+        </div>
+
+        <!-- Class Preview Gallery -->
+        <div class="card card-class-gallery">
+          <div class="card-header">
+            <div class="header-title-wrap">
+              <i class="fa-regular fa-images text-primary"></i>
+              <h3 id="datasetGalleryTitle">Representative Endoscopy Samples — Polyps (1,000 images)</h3>
+            </div>
+            <span class="header-badge">Preprocessed 256x256</span>
+          </div>
+          <div class="dataset-samples-grid" id="datasetSamplesGrid">
+            <div class="d-sample-thumb"><img src="assets/samples/polyps.jpg" alt="Sample 1"></div>
+            <div class="d-sample-thumb"><img src="assets/samples/polyps_2.jpg" alt="Sample 2"></div>
+            <div class="d-sample-thumb"><img src="assets/samples/polyps_3.jpg" alt="Sample 3"></div>
+            <div class="d-sample-thumb"><img src="assets/samples/polyps_4.jpg" alt="Sample 4"></div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ====================================================================
+           SECTION 5: ABOUT WORKBENCH
+           ==================================================================== -->
+      <section class="view-section" id="view-about">
+        
+        <!-- Banner -->
+        <div class="section-banner about-gradient">
+          <div class="banner-text">
+            <h2>About GastroGen Framework</h2>
+            <p>An end-to-end deep generative AI framework designed to solve rare endoscopic data scarcity, preserve delicate mucosal vascular boundaries, and elevate downstream computer-aided diagnostic precision.</p>
+          </div>
+          <div class="banner-badge-group">
+            <span class="model-pill"><i class="fa-solid fa-graduation-cap"></i> Research Framework</span>
+            <span class="model-pill success"><i class="fa-solid fa-code"></i> PyTorch 2.x</span>
+          </div>
+        </div>
+
+        <div class="dashboard-row row-details-grid">
+          
+          <div class="card card-about-info">
+            <div class="card-header">
+              <div class="header-title-wrap">
+                <i class="fa-solid fa-bullseye text-primary"></i>
+                <h3>Core Research Objectives</h3>
+              </div>
+            </div>
+            <div class="about-body-content">
+              <div class="objective-item">
+                <div class="obj-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <div class="obj-text">
+                  <strong>Eliminate Generative Blurriness & Collapse</strong>
+                  <p>Upgraded conventional 1D latent VAEs to 2D Spatial Continuous Latent VAE ($8 \times 32 \times 32$) with Sobel edge loss to maintain micro-vascular fidelity.</p>
+                </div>
+              </div>
+
+              <div class="objective-item">
+                <div class="obj-icon"><i class="fa-solid fa-database"></i></div>
+                <div class="obj-text">
+                  <strong>Zero-Leakage Data Augmentation</strong>
+                  <p>High-quality synthetic endoscopy image generation across 8 Kvasir classes without patient overlap between training and evaluation splits.</p>
+                </div>
+              </div>
+
+              <div class="objective-item">
+                <div class="obj-icon"><i class="fa-solid fa-chart-pie"></i></div>
+                <div class="obj-text">
+                  <strong>Measurable Downstream Diagnostic Precision</strong>
+                  <p>Empirical classification gains (+5.9% with Spatial VAE, +9.1% with ViT) on real Kvasir-v2 endoscopy validation sets.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card card-about-tech">
+            <div class="card-header">
+              <div class="header-title-wrap">
+                <i class="fa-solid fa-laptop-code text-purple"></i>
+                <h3>Technology Stack</h3>
+              </div>
+            </div>
+            <div class="tech-stack-grid">
+              <div class="tech-item">
+                <i class="fa-brands fa-python text-blue"></i>
+                <strong>Python 3.12</strong>
+                <span>Backend Core</span>
+              </div>
+              <div class="tech-item">
+                <i class="fa-solid fa-fire text-orange"></i>
+                <strong>PyTorch & CUDA</strong>
+                <span>Deep Learning</span>
+              </div>
+              <div class="tech-item">
+                <i class="fa-brands fa-js text-orange"></i>
+                <strong>Vanilla JS (ES6+)</strong>
+                <span>Dynamic UI</span>
+              </div>
+              <div class="tech-item">
+                <i class="fa-solid fa-chart-simple text-pink"></i>
+                <strong>Chart.js</strong>
+                <span>Real-Time Charts</span>
+              </div>
+              <div class="tech-item">
+                <i class="fa-brands fa-css3-alt text-blue"></i>
+                <strong>Modern CSS3</strong>
+                <span>Design System</span>
+              </div>
+              <div class="tech-item">
+                <i class="fa-solid fa-server text-purple"></i>
+                <strong>HTTP Backend</strong>
+                <span>Real Model API</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ====================================================================
+           PRESERVED HOME & PREDICTION CODE (Saved for future use)
+           ==================================================================== -->
+      <section class="view-section" id="section-home" style="display:none;">
+        <!-- Hero Banner -->
+        <section class="hero-banner">
+          <div class="hero-content">
+            <h2 class="hero-headline">From Data to Discovery<br>for a Healthier Gut</h2>
+            <p class="hero-subtext">Generate. Augment. Classify. Empower Gastrointestinal Care with AI.</p>
+          </div>
+          <div class="hero-visual">
+            <div class="hero-badge">"Smarter AI for a Healthier You"</div>
+            <img src="assets/hero_gi_3d.jpg" alt="3D Digestive System" class="hero-img">
+          </div>
+        </section>
+
+        <!-- Prediction Row -->
+        <section class="dashboard-row row-predict">
+          <div class="card card-upload">
+            <div class="card-header"><h3>Upload an Endoscopy Image</h3></div>
+            <div class="upload-dropzone" id="dropzone">
+              <input type="file" id="fileInput" accept="image/*" style="display:none">
+              <div class="dropzone-content" id="dropzoneContent">
+                <div class="upload-icon-circle"><i class="fa-solid fa-arrow-up-from-bracket"></i></div>
+                <p class="dropzone-text"><strong>Drag & drop an image here</strong><br>or click to upload</p>
+              </div>
+              <div class="preview-box" id="previewContainer">
+                <img id="imagePreview" src="assets/samples/polyps.jpg" alt="Uploaded Endoscopy">
+                <button class="remove-img-btn" id="removeImgBtn"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-classify" id="classifyBtn">Classify Image</button>
+          </div>
+          <div class="card card-result">
+            <div class="card-header"><h3>Prediction Result</h3></div>
+            <div class="result-body">
+              <img src="assets/samples/polyps.jpg" class="result-thumb" id="resultThumb">
+              <div class="result-details">
+                <div class="predicted-class" id="predictedClassName">Polyps</div>
+                <div class="confidence-val" id="confidenceValue">92.4%</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Custom JavaScript -->
+  <script src="js/app.js?v=2"></script>
+</body>
+</html>

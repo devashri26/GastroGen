@@ -1,7 +1,11 @@
-/**
+﻿/**
  * GastroGen — Multi-Model Generative AI Framework Application Logic
  * Interactive Workbenches: Autoencoder v2, VAE v2, Model Comparison, Dataset Info, About
  */
+
+const API_BASE = (typeof window !== 'undefined' && window.location.protocol === 'file:')
+  ? 'https://devashri26-gastrogen.hf.space'
+  : ((typeof window !== 'undefined' && window.GASTROGEN_API_URL) || '');
 
 document.addEventListener('DOMContentLoaded', () => {
   initNavigation();
@@ -132,7 +136,7 @@ function runAEReconstruction() {
   btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Reconstructing...';
   btn.disabled = true;
 
-  fetch('/api/reconstruct', {
+  fetch(`${API_BASE}/api/reconstruct`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ image: aeCurrentBase64, model: 'ae' })
@@ -180,7 +184,7 @@ function createVerticalGradient(ctx, topColor, bottomColor, height = 280) {
 
 let aeLossChartInstance = null;
 function loadAELossChart() {
-  fetch('/api/training_logs?model=ae')
+  fetch(`${API_BASE}/api/training_logs?model=ae`)
     .then(res => res.json())
     .then(data => {
       const logs = data.logs || [];
@@ -316,7 +320,7 @@ function loadAELossChart() {
 
 let aeClassChartInstance = null;
 function loadAEClassChart() {
-  fetch('/api/per_class_metrics?model=ae')
+  fetch(`${API_BASE}/api/per_class_metrics?model=ae`)
     .then(res => res.json())
     .then(data => {
       const classes = Object.keys(data);
@@ -489,7 +493,7 @@ function runVAEReconstruction() {
   btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Reconstructing...';
   btn.disabled = true;
 
-  fetch('/api/reconstruct', {
+  fetch(`${API_BASE}/api/reconstruct`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ image: vaeCurrentBase64, model: 'vae' })
@@ -522,7 +526,7 @@ function sampleVAEPrior() {
   btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sampling Prior...';
   btn.disabled = true;
 
-  fetch('/api/generate?model=vae&class=polyps&count=4')
+  fetch(`${API_BASE}/api/generate?model=vae&class=polyps&count=4`)
     .then(res => res.json())
     .then(data => {
       btn.innerHTML = '<i class="fa-solid fa-dice"></i> Sample Prior $\\mathcal{N}(0, I)$';
@@ -547,7 +551,7 @@ function sampleVAEPrior() {
 
 let vaeLossChartInstance = null;
 function loadVAELossChart() {
-  fetch('/api/training_logs?model=vae')
+  fetch(`${API_BASE}/api/training_logs?model=vae`)
     .then(res => res.json())
     .then(data => {
       const logs = data.logs || [];
@@ -708,7 +712,7 @@ function loadVAELossChart() {
 
 let vaeClassChartInstance = null;
 function loadVAEClassChart() {
-  fetch('/api/per_class_metrics?model=vae')
+  fetch(`${API_BASE}/api/per_class_metrics?model=vae`)
     .then(res => res.json())
     .then(data => {
       const classes = Object.keys(data);
@@ -945,7 +949,7 @@ function runTransformerPrediction() {
     btn.disabled = true;
   }
 
-  fetch('/api/transformer_predict', {
+  fetch(`${API_BASE}/api/transformer_predict`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ image: tfCurrentBase64 })
@@ -1051,7 +1055,7 @@ function runTransformerPrediction() {
 
 let tfLossAccuracyChartInstance = null;
 function loadTransformerLossChart() {
-  fetch('/api/training_logs?model=transformer_v2')
+  fetch(`${API_BASE}/api/training_logs?model=transformer_v2`)
     .then(res => res.json())
     .then(data => {
       const logs = data.logs || [];
@@ -1278,7 +1282,7 @@ function runCompareAll(base64Img) {
     uploadBtn.disabled = true;
   }
 
-  fetch('/api/compare_all', {
+  fetch(`${API_BASE}/api/compare_all`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ image: base64Img })
@@ -1356,7 +1360,7 @@ function runCompareAll(base64Img) {
 
 let compAugChartInstance = null;
 function loadAugmentationGainChart() {
-  fetch('/api/metrics')
+  fetch(`${API_BASE}/api/metrics`)
     .then(res => res.json())
     .then(metrics => {
       const dataValues = [
@@ -1459,7 +1463,7 @@ function initDatasetExplorer() {
       const clsName = card.querySelector('h4').textContent;
       galleryTitle.textContent = `Representative Endoscopy Samples — ${clsName} (1,000 images)`;
 
-      fetch(`/api/dataset_samples?class=${cls}`)
+      fetch(`${API_BASE}/api/dataset_samples?class=${cls}`)
         .then(res => res.json())
         .then(data => {
           if (data.samples && data.samples.length > 0) {

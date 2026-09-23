@@ -1,0 +1,16 @@
+# Netlify Configuration for GastroGen Dashboard (frontend1)
+[build]
+  publish = "."
+
+# Transparent proxy to live Hugging Face ZeroGPU backend
+[[redirects]]
+  from = "/api/*"
+  to = "https://devashri26-gastrogen.hf.space/api/:splat"
+  status = 200
+  force = true
+
+# Single Page Application navigation fallback
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

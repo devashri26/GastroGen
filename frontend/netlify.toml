@@ -1,8 +1,18 @@
-# Netlify Build and Deployment Configuration for GastroGen UI
+# Netlify Configuration for GastroGen
+# Fallback handler: if Netlify Base directory remains set to 'frontend',
+# mirror the frontend1/frontend static application into 'dist' for immediate deployment.
 [build]
-  command = "npm run build"
+  command = "node -e \"const fs=require('fs'); fs.rmSync('dist', {recursive:true, force:true}); fs.cpSync('../frontend1/frontend', 'dist', {recursive: true});\" || cp -r ../frontend1/frontend/* dist/ || true"
   publish = "dist"
 
+# Transparent proxy to live Hugging Face ZeroGPU backend
+[[redirects]]
+  from = "/api/*"
+  to = "https://devashri26-gastrogen.hf.space/api/:splat"
+  status = 200
+  force = true
+
+# Single Page Application navigation fallback
 [[redirects]]
   from = "/*"
   to = "/index.html"
