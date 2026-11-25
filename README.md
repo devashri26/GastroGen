@@ -1,8 +1,5 @@
 ---
-title: GastroGen — Generative AI for Gastrointestinal Health
-emoji: 🩺
-colorFrom: indigo
-colorTo: purple
+Title: GastroGen — Generative AI for Gastrointestinal Health
 sdk: gradio
 sdk_version: "6.11.0"
 python_version: "3.10"
@@ -33,7 +30,7 @@ license: mit
 * **Department & Institution**: Department of Computer Engineering, MIT Academy of Engineering, Pune
 * **Project Guide**: **Dr. Savita Mane**
 
-| Team Members | PRN / Roll Number | Department & College |
+| Team Members | PRN  | Department & College |
 | :--- | :---: | :--- |
 | **Devashri Chakkarwar** | `202301040210` | Computer Engineering, MIT AOE Pune |
 | **Preeti Koli** | `202301040213` | Computer Engineering, MIT AOE Pune |
